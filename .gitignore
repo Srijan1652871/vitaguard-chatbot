@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+diabetes_012_health_indicators_BRFSS2015.csv
+data_preprocess.zip

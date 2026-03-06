@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VitaGuard AI — Symptom Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #f5f0e8;
+  --bg2:       #ede8dc;
+  --white:     #fdfaf5;
+  --ink:       #1a1612;
+  --ink2:      #3d3530;
+  --muted:     #8c7e72;
+  --border:    #d5cdc0;
+  --accent:    #1a7a5e;
+  --accent-lt: #e8f5f0;
+  --accent2:   #15644e;
+  --warn:      #d4870a;
+  --danger:    #c0392b;
+  --low:       #1a7a5e;
+  --mod:       #d4870a;
+  --high:      #c0392b;
+  --low-bg:    #e8f5f0;
+  --mod-bg:    #fef5e4;
+  --high-bg:   #fdecea;
+  --shadow:    0 4px 24px rgba(26,22,18,.1);
+  --shadow-lg: 0 12px 48px rgba(26,22,18,.15);
+  --r:         14px;
+  --font-h:    'Playfair Display', Georgia, serif;
+  --font-b:    'Outfit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-b);
+  font-size: 16px; line-height: 1.6; min-height: 100vh;
+}
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: .5;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── NAVBAR ── */
+#navbar {
+  position: sticky; top: 0; z-index: 500;
+  background: rgba(245,240,232,.95); backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px; height: 64px;
+}
+.nav-logo {
+  font-family: var(--font-h); font-size: 1.25rem; font-weight: 900;
+  color: var(--ink); display: flex; align-items: center; gap: 9px; text-decoration: none;
+}
+.nav-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  display: inline-block; animation: dot-breathe 3s ease-in-out infinite;
+}
+@keyframes dot-breathe { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.7} }
+.nav-badge {
+  background: var(--accent-lt); color: var(--accent);
+  font-size: .68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 50px; border: 1px solid rgba(26,122,94,.2);
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-btn {
+  background: none; border: 1.5px solid var(--border); cursor: pointer;
+  font-family: var(--font-b); font-size: .85rem; font-weight: 600;
+  color: var(--muted); padding: 7px 16px; border-radius: 50px; transition: all .2s;
+}
+.nav-btn:hover { color: var(--ink); border-color: var(--ink); }
+.nav-btn.primary { background: var(--accent); color: var(--white); border-color: var(--accent); }
+.nav-btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+
+/* ── PROGRESS BAR ── */
+.chat-progress {
+  position: fixed; top: 64px; left: 0; right: 0;
+  height: 3px; background: var(--border); z-index: 200;
+}
+.chat-progress-fill {
+  height: 100%; background: var(--accent);
+  transition: width .5s cubic-bezier(.4,0,.2,1); border-radius: 0 2px 2px 0;
+}
+
+/* ── LAYOUT ── */
+.chat-wrap { max-width: 720px; margin: 0 auto; padding: 60px 24px 180px; display: flex; flex-direction: column; gap: 0; }
+.chat-header { text-align: center; margin-bottom: 48px; }
+.chat-header .sec-label { font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
+.chat-header h1 { font-family: var(--font-h); font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 900; letter-spacing: -.5px; margin-bottom: 10px; }
+.chat-header p { color: var(--muted); font-size: .95rem; line-height: 1.6; }
+.chat-thread { display: flex; flex-direction: column; gap: 20px; min-height: 100px; }
+
+/* ── BOT BUBBLE ── */
+.msg-bot { display: flex; gap: 12px; align-items: flex-start; animation: msg-in .35s cubic-bezier(.4,0,.2,1); }
+.bot-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--ink); color: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 700; flex-shrink: 0;
+  font-family: var(--font-h); box-shadow: 0 2px 8px rgba(26,22,18,.2);
+}
+.bot-bubble { background: var(--white); border: 1px solid var(--border); border-radius: 20px 20px 20px 4px; padding: 16px 20px; max-width: 560px; box-shadow: 0 2px 12px rgba(26,22,18,.06); color: var(--ink); font-size: .95rem; line-height: 1.65; }
+.bot-bubble strong { font-weight: 600; }
+.bot-bubble .q-hint { display: block; margin-top: 8px; font-size: .82rem; color: var(--muted); font-style: italic; }
+
+/* ── USER BUBBLE ── */
+.msg-user { display: flex; justify-content: flex-end; animation: msg-in .35s cubic-bezier(.4,0,.2,1); }
+.user-bubble { background: var(--accent); color: var(--white); border-radius: 20px 20px 4px 20px; padding: 13px 20px; max-width: 440px; font-size: .93rem; line-height: 1.55; font-weight: 500; }
+@keyframes msg-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── TYPING ── */
+.typing-indicator { display: flex; gap: 12px; align-items: center; }
+.typing-dots { display: flex; gap: 5px; align-items: center; padding: 14px 18px; background: var(--white); border: 1px solid var(--border); border-radius: 20px 20px 20px 4px; box-shadow: 0 2px 12px rgba(26,22,18,.06); }
+.typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: dot-bounce .9s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes dot-bounce { 0%,80%,100% { transform: translateY(0); opacity:.5; } 40% { transform: translateY(-5px); opacity:1; } }
+
+/* ── MCQ OPTIONS ── */
+.option-grid { display: flex; flex-wrap: wrap; gap: 10px; padding: 6px 0 4px; margin-top: 12px; }
+.opt-btn { background: var(--white); border: 1.5px solid var(--border); border-radius: 50px; padding: 9px 18px; font-family: var(--font-b); font-size: .88rem; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .18s; white-space: nowrap; }
+.opt-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+.opt-btn.selected { background: var(--accent); border-color: var(--accent); color: var(--white); }
+
+/* ── INPUT AREA ── */
+.chat-input-area { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(245,240,232,.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 16px 24px; z-index: 100; }
+.chat-input-inner { max-width: 720px; margin: 0 auto; }
+.text-input-row { display: flex; gap: 10px; align-items: flex-end; }
+.symptom-textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 18px; font-family: var(--font-b); font-size: .95rem; background: var(--white); color: var(--ink); outline: none; resize: none; transition: border-color .18s; min-height: 48px; max-height: 140px; line-height: 1.5; }
+.symptom-textarea:focus { border-color: var(--accent); }
+.symptom-textarea::placeholder { color: var(--muted); }
+.send-btn { background: var(--accent); color: var(--white); border: none; border-radius: 50px; padding: 12px 24px; font-family: var(--font-b); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; white-space: nowrap; align-self: flex-end; min-height: 48px; }
+.send-btn:hover { background: var(--accent2); }
+.send-btn:disabled { opacity: .5; cursor: not-allowed; }
+.mcq-input-area { padding: 4px 0; }
+.mcq-label { font-size: .78rem; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+
+/* ── RESULT CARD ── */
+.result-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 26px; max-width: 580px; box-shadow: 0 4px 24px rgba(26,22,18,.07); animation: msg-in .4s cubic-bezier(.4,0,.2,1); }
+.result-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.result-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+.result-icon.low   { background: var(--low-bg); }
+.result-icon.mod   { background: var(--mod-bg); }
+.result-icon.high  { background: var(--high-bg); }
+.result-title { font-family: var(--font-h); font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+.severity-pill { display: inline-block; padding: 3px 12px; border-radius: 50px; font-size: .75rem; font-weight: 700; }
+.severity-pill.low  { background: var(--low-bg); color: var(--low); }
+.severity-pill.mod  { background: var(--mod-bg); color: var(--mod); }
+.severity-pill.high { background: var(--high-bg); color: var(--high); }
+.section-lbl { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-lbl::after { content:''; flex:1; height:1px; background: var(--border); }
+.condition-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.condition-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+.cond-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.cond-body strong { display: block; font-size: .9rem; font-weight: 700; margin-bottom: 2px; }
+.cond-body span { font-size: .83rem; color: var(--muted); line-height: 1.45; }
+.cond-prob { margin-left: auto; flex-shrink: 0; font-family: var(--font-h); font-size: .95rem; font-weight: 900; padding: 2px 10px; border-radius: 50px; align-self: center; }
+.cond-prob.high-p  { color: var(--high);  background: var(--high-bg); font-size: .75rem; }
+.cond-prob.mod-p   { color: var(--mod);   background: var(--mod-bg);  font-size: .75rem; }
+.cond-prob.low-p   { color: var(--low);   background: var(--low-bg);  font-size: .75rem; }
+.measures-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.measure-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+.measure-ico { width: 34px; height: 34px; border-radius: 10px; background: var(--accent-lt); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.measure-body strong { display: block; font-size: .88rem; font-weight: 700; margin-bottom: 2px; }
+.measure-body span { font-size: .82rem; color: var(--muted); line-height: 1.45; }
+.disclaimer-box { background: var(--mod-bg); border: 1px solid rgba(212,135,10,.2); border-radius: 12px; padding: 14px 16px; font-size: .8rem; color: var(--ink2); line-height: 1.55; }
+.disclaimer-box strong { color: var(--warn); }
+.result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.ract-btn { background: var(--ink); color: var(--white); border: none; border-radius: 50px; padding: 10px 20px; font-family: var(--font-b); font-weight: 600; font-size: .88rem; cursor: pointer; transition: all .2s; }
+.ract-btn:hover { background: var(--accent); }
+.ract-btn.outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink); }
+.ract-btn.outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── LOADER ── */
+.loader-screen { display: none; position: fixed; inset: 0; z-index: 999; background: var(--bg); flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+.loader-screen.show { display: flex; }
+.loader-bars { display: flex; gap: 6px; align-items: flex-end; height: 48px; }
+.lb { width: 8px; border-radius: 4px; background: var(--accent); animation: bar-pulse 1s ease-in-out infinite; }
+.lb:nth-child(1){ animation-delay:0s; } .lb:nth-child(2){ animation-delay:.15s; } .lb:nth-child(3){ animation-delay:.3s; } .lb:nth-child(4){ animation-delay:.45s; } .lb:nth-child(5){ animation-delay:.6s; }
+@keyframes bar-pulse { 0%,100% { height:16px; opacity:.4; } 50% { height:48px; opacity:1; } }
+.loader-msg { font-family: var(--font-h); font-size:1.1rem; font-weight:700; color:var(--ink); }
+.loader-sub  { color:var(--muted); font-size:.85rem; }
+
+/* ── MISC ── */
+.symptom-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.symptom-chip { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(26,122,94,.25); padding: 3px 10px; border-radius: 50px; font-size: .78rem; font-weight: 600; }
+.step-label { text-align: center; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 8px 0 2px; }
+.phase-divider { text-align:center; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin:4px 0 2px; display:flex; align-items:center; gap:10px; }
+.phase-divider::before,.phase-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+@media (max-width: 700px) {
+  #navbar { padding: 0 16px; }
+  .chat-wrap { padding: 40px 14px 180px; }
+  .bot-bubble { max-width: calc(100vw - 80px); }
+  .result-card { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-right">
+    <span class="nav-badge">🩺 Symptom Analyzer</span>
+    <button class="nav-btn primary" onclick="resetChat()">🔄 New Analysis</button>
+  </div>
+</nav>
+
+<div class="loader-screen" id="loader">
+  <div class="loader-bars"><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div></div>
+  <div class="loader-msg" id="loaderMsg">Analyzing symptoms…</div>
+  <div class="loader-sub" id="loaderSub">Processing with Groq AI</div>
+</div>
+
+
+<div class="chat-progress"><div class="chat-progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="chat-wrap">
+  <div class="chat-header">
+    <span class="sec-label">AI Health Assistant</span>
+    <h1>Symptom Analyzer</h1>
+    <p>Describe your symptoms and get an AI-powered educational health assessment.</p>
+  </div>
+  <div class="chat-thread" id="chatThread"></div>
+</div>
+
+<div class="chat-input-area">
+  <div class="chat-input-inner">
+    <div id="textInputArea" class="text-input-row">
+      <textarea class="symptom-textarea" id="userTextarea" rows="1"
+        placeholder="e.g. I've had a pounding headache for 2 days, my neck feels stiff, and light bothers my eyes…"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" onclick="handleTextSend()">Send</button>
+    </div>
+    <div id="mcqInputArea" class="mcq-input-area" style="display:none">
+      <div class="mcq-label">Select the option that best describes you</div>
+      <div class="option-grid" id="mcqOptions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+async function callClaude(userText, systemInstruction) {
+  let response;
+  try {
+    response = await fetch("/api/groq", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 1500,
+        temperature: 0.4,
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user",   content: userText }
+        ]
+      })
+    });
+  } catch (netErr) {
+    throw new Error("NETWORK");
+  }
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content || "";
+  if (!text) throw new Error("Empty response from Groq.");
+  return text;
+}
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const state = {
+  phase: 'initial',
+  initialText: '',
+  detectedSymptoms: [],
+  followupQuestions: [],
+  followupIndex: 0,
+  answers: {},
+  totalQuestions: 0,
+};
+
+/* ════════════════════════════════════════
+   DOM HELPERS
+════════════════════════════════════════ */
+const thread = () => document.getElementById('chatThread');
+function scrollBottom() { setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 80); }
+function setProgress(pct) { document.getElementById('progressFill').style.width = pct + '%'; }
+
+function botBubble(html, extraClass = '') {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-bot ' + extraClass;
+  wrap.innerHTML = `<div class="bot-avatar">VG</div><div class="bot-bubble">${html}</div>`;
+  thread().appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function userBubble(text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-user';
+  wrap.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+  thread().appendChild(wrap);
+  scrollBottom();
+}
+
+function typingIndicator() {
+  const wrap = document.createElement('div');
+  wrap.className = 'typing-indicator';
+  wrap.id = 'typing';
+  wrap.innerHTML = `<div class="bot-avatar">VG</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  thread().appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function removeTyping() { const el = document.getElementById('typing'); if (el) el.remove(); }
+function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showLoader(msg = 'Analyzing symptoms…', sub = 'Processing with Groq AI') {
+  document.getElementById('loaderMsg').textContent = msg;
+  document.getElementById('loaderSub').textContent = sub;
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoader() { document.getElementById('loader').classList.remove('show'); }
+
+function showTextInput(placeholder = '') {
+  document.getElementById('mcqInputArea').style.display = 'none';
+  document.getElementById('textInputArea').style.display = 'flex';
+  const ta = document.getElementById('userTextarea');
+  if (placeholder) ta.placeholder = placeholder;
+  ta.value = '';
+  ta.focus();
+}
+
+function showMCQInput(options) {
+  document.getElementById('textInputArea').style.display = 'none';
+  document.getElementById('mcqInputArea').style.display = 'block';
+  const grid = document.getElementById('mcqOptions');
+  grid.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.onclick = () => handleMCQSelect(opt);
+    grid.appendChild(btn);
+  });
+}
+
+function showApiError(err) {
+  const code = err.message || '';
+  if (code === 'NETWORK') {
+    botBubble(`<strong>⚠️ Network error.</strong><br>Could not reach the Groq API. Check your internet connection and try again.`);
+  } else if (code.includes('401') || code.includes('invalid_api_key')) {
+    botBubble(`
+      <strong>⚠️ Invalid API key.</strong><br>
+      The key was rejected by Groq. Double-check it at
+      <a href="https://console.groq.com" target="_blank" style="color:var(--accent);font-weight:600">console.groq.com</a>.
+    `);
+  } else {
+    botBubble(`<strong>⚠️ Groq API error:</strong> ${escapeHtml(code)}<br>Please try again in a moment.`);
+  }
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('userTextarea');
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleTextSend(); } });
+
+  setTimeout(() => {
+    botBubble(`
+      <strong>Hello, I'm VitaGuard's Symptom Analyzer. 👋</strong><br><br>
+      Tell me how you've been feeling lately. Describe your symptoms, when they started,
+      how severe they are, and anything else that seems relevant.
+      The more detail you share, the better I can help.<br><br>
+      <em class="q-hint">Tip: "I've had a throbbing headache for 3 days, fever around 38°C, and I feel very tired…"</em>
+    `);
+    setProgress(5);
+  }, 400);
+});
+
+/* ════════════════════════════════════════
+   STEP 1 — INITIAL SYMPTOM INPUT
+════════════════════════════════════════ */
+async function handleTextSend() {
+  const ta = document.getElementById('userTextarea');
+  const text = ta.value.trim();
+  if (!text || document.getElementById('sendBtn').disabled) return;
+  userBubble(text);
+  ta.value = '';
+  ta.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+  if (state.phase === 'initial') { state.initialText = text; await analyzeInitialSymptoms(text); }
+}
+
+async function analyzeInitialSymptoms(text) {
+  typingIndicator();
+
+  const systemPrompt = `You are a medical symptom analysis AI. When given a free-text description of symptoms you must:
+1. Extract and list the key symptoms mentioned.
+2. Generate 7-10 concise follow-up MCQ questions (with 4 options each) that will help distinguish between possible conditions.
+
+Respond ONLY with valid JSON — no markdown fences, no preamble, no trailing text. Use this exact structure:
+{
+  "detectedSymptoms": ["symptom1", "symptom2"],
+  "followupQuestions": [
+    {
+      "key": "q1",
+      "question": "Question text here?",
+      "options": ["Option A", "Option B", "Option C", "Option D"]
+    }
+  ]
+}
+
+Make every question clinically relevant to the reported symptoms.`;
+
+  try {
+    const raw = await callClaude(text, systemPrompt);
+    removeTyping();
+
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      botBubble("Sorry, I had trouble understanding that. Could you rephrase your symptoms?");
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+
+    state.detectedSymptoms = parsed.detectedSymptoms || [];
+    state.followupQuestions = parsed.followupQuestions || [];
+    state.totalQuestions = state.followupQuestions.length;
+    state.phase = 'followup';
+
+    const chipsHtml = state.detectedSymptoms.map(s => `<span class="symptom-chip">${escapeHtml(s)}</span>`).join('');
+    botBubble(`
+      I've identified these symptoms:<br>
+      <div class="symptom-chips">${chipsHtml}</div><br>
+      I'll now ask you a few follow-up questions to better understand your condition.
+    `);
+
+    setProgress(15);
+    setTimeout(() => askFollowup(), 800);
+
+  } catch (err) {
+    removeTyping();
+    showApiError(err);
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+/* ════════════════════════════════════════
+   STEP 2 — FOLLOW-UP MCQ
+════════════════════════════════════════ */
+function askFollowup() {
+  const q = state.followupQuestions[state.followupIndex];
+  if (!q) return;
+
+  const stepEl = document.createElement('div');
+  stepEl.className = 'step-label';
+  stepEl.textContent = `Question ${state.followupIndex + 1} of ${state.totalQuestions}`;
+  thread().appendChild(stepEl);
+
+  botBubble(`<strong>${escapeHtml(q.question)}</strong>`);
+  showMCQInput(q.options);
+
+  const progress = 15 + (state.followupIndex / state.totalQuestions) * 55;
+  setProgress(progress);
+  scrollBottom();
+}
+
+function handleMCQSelect(choice) {
+  const q = state.followupQuestions[state.followupIndex];
+  if (!q) return;
+
+  document.querySelectorAll('#mcqOptions .opt-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === choice);
+    b.disabled = true;
+  });
+
+  state.answers[q.key] = choice;
+  userBubble(choice);
+  state.followupIndex++;
+
+  if (state.followupIndex < state.totalQuestions) {
+    setTimeout(() => askFollowup(), 700);
+  } else {
+    setTimeout(() => generateDiagnosis(), 700);
+  }
+}
+
+/* ════════════════════════════════════════
+   STEP 3 — DIAGNOSIS & RECOMMENDATIONS
+════════════════════════════════════════ */
+async function generateDiagnosis() {
+  document.getElementById('mcqInputArea').style.display = 'none';
+  showLoader('Generating analysis…', 'Correlating symptoms with Groq AI');
+  setProgress(80);
+
+  const answersText = state.followupQuestions
+    .map(q => `Q: ${q.question}\nA: ${state.answers[q.key] || 'Not answered'}`)
+    .join('\n\n');
+
+  const systemPrompt = `You are a medical symptom analysis AI providing educational health information.
+Based on the user's initial symptom description and their answers to follow-up questions, generate a detailed assessment.
+
+Respond ONLY with valid JSON — no markdown fences, no preamble:
+{
+  "overallSeverity": "low",
+  "summary": "2-3 sentence summary of the clinical picture",
+  "possibleConditions": [
+    {
+      "name": "Condition name",
+      "probability": "Likely",
+      "icon": "🩺",
+      "description": "Why this fits the symptoms"
+    }
+  ],
+  "measures": [
+    {
+      "icon": "💧",
+      "title": "Action title",
+      "description": "What to do and why"
+    }
+  ],
+  "urgencyNote": "Short urgent advice if high severity, else leave as empty string",
+  "whenToSeekHelp": "Specific warning signs that need immediate medical attention"
+}
+
+Rules:
+- overallSeverity must be exactly one of: "low", "moderate", "high"
+- probability must be exactly one of: "Likely", "Possible", "Less likely"
+- Provide 3-4 possibleConditions ranked by likelihood
+- Provide 4-5 measures
+- Keep tone professional but accessible
+- This is educational only — never claim to diagnose`;
+
+  const userContent = `Initial symptoms described by patient: ${state.initialText}
+
+Key symptoms detected: ${state.detectedSymptoms.join(', ')}
+
+Follow-up Q&A:
+${answersText}`;
+
+  try {
+    const raw = await callClaude(userContent, systemPrompt);
+    hideLoader();
+
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      botBubble("I had trouble generating the analysis. Please try starting a new session.");
+      return;
+    }
+
+    setProgress(100);
+    state.phase = 'result';
+    botBubble("✅ Analysis complete! Here's what I found based on your symptoms and answers:");
+    setTimeout(() => renderResultCard(parsed), 600);
+
+  } catch (err) {
+    hideLoader();
+    showApiError(err);
+  }
+}
+
+/* ════════════════════════════════════════
+   RENDER RESULT CARD
+════════════════════════════════════════ */
+function renderResultCard(data) {
+  const severityMap = {
+    low:      { cls: 'low',  icon: '🟢', label: '🟢 Low Severity' },
+    moderate: { cls: 'mod',  icon: '🟡', label: '🟡 Moderate Severity' },
+    high:     { cls: 'high', icon: '🔴', label: '🔴 High Severity — Seek Care' },
+  };
+  const sev = severityMap[data.overallSeverity] || severityMap.moderate;
+  const probCls = p => p === 'Likely' ? 'high-p' : p === 'Possible' ? 'mod-p' : 'low-p';
+
+  const conditionsHtml = (data.possibleConditions || []).map(c => `
+    <div class="condition-item">
+      <div class="cond-icon">${c.icon || '🩺'}</div>
+      <div class="cond-body">
+        <strong>${escapeHtml(c.name)}</strong>
+        <span>${escapeHtml(c.description)}</span>
+      </div>
+      <span class="cond-prob ${probCls(c.probability)}">${escapeHtml(c.probability)}</span>
+    </div>`).join('');
+
+  const measuresHtml = (data.measures || []).map(m => `
+    <div class="measure-row">
+      <div class="measure-ico">${m.icon || '💊'}</div>
+      <div class="measure-body">
+        <strong>${escapeHtml(m.title)}</strong>
+        <span>${escapeHtml(m.description)}</span>
+      </div>
+    </div>`).join('');
+
+  const urgencyHtml = data.urgencyNote ? `
+    <div style="background:var(--high-bg);border:1px solid rgba(192,57,43,.2);border-radius:12px;
+                padding:12px 14px;margin-bottom:18px;font-size:.85rem;color:var(--high);font-weight:600;">
+      🚨 ${escapeHtml(data.urgencyNote)}
+    </div>` : '';
+
+  const card = document.createElement('div');
+  card.className = 'msg-bot';
+  card.innerHTML = `
+    <div class="bot-avatar">VG</div>
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-icon ${sev.cls}">${sev.icon}</div>
+        <div>
+          <div class="result-title">Symptom Analysis Report</div>
+          <span class="severity-pill ${sev.cls}">${sev.label}</span>
+        </div>
+      </div>
+      <div style="font-size:.88rem;color:var(--ink2);line-height:1.6;margin-bottom:18px;
+                  padding:12px 14px;background:var(--bg);border-radius:12px;border:1px solid var(--border);">
+        ${escapeHtml(data.summary || '')}
+      </div>
+      ${urgencyHtml}
+      <div class="section-lbl">Possible Conditions</div>
+      <div class="condition-list">${conditionsHtml}</div>
+      <div class="section-lbl">Recommended Measures</div>
+      <div class="measures-list">${measuresHtml}</div>
+      ${data.whenToSeekHelp ? `
+      <div style="background:var(--mod-bg);border:1px solid rgba(212,135,10,.2);
+                  border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;
+                    letter-spacing:1px;color:var(--warn);margin-bottom:6px;">⚠️ Seek Immediate Help If</div>
+        <div style="font-size:.83rem;color:var(--ink2);line-height:1.5;">${escapeHtml(data.whenToSeekHelp)}</div>
+      </div>` : ''}
+      <div class="disclaimer-box">
+        <strong>⚠️ Disclaimer:</strong> This analysis is for <strong>educational purposes only</strong>
+        and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified
+        healthcare professional for accurate diagnosis and treatment.
+      </div>
+      <div class="result-actions">
+        <button class="ract-btn" onclick="resetChat()">🔄 Start New Analysis</button>
+        <button class="ract-btn outline" onclick="window.print()">🖨️ Print Report</button>
+      </div>
+    </div>`;
+
+  thread().appendChild(card);
+  scrollBottom();
+
+  setTimeout(() => {
+    botBubble(`
+      That's your full symptom analysis. <strong>Remember:</strong> this is an educational tool —
+      please consult a doctor for a proper evaluation, especially if symptoms are severe or persist.<br><br>
+      <em class="q-hint">Start a new session anytime using the button above or "New Session" in the navbar.</em>
+    `);
+    scrollBottom();
+  }, 800);
+}
+
+/* ════════════════════════════════════════
+   RESET
+════════════════════════════════════════ */
+function resetChat() {
+  state.phase = 'initial';
+  state.initialText = '';
+  state.detectedSymptoms = [];
+  state.followupQuestions = [];
+  state.followupIndex = 0;
+  state.answers = {};
+  state.totalQuestions = 0;
+  thread().innerHTML = '';
+  setProgress(0);
+  showTextInput("e.g. I've had a pounding headache for 2 days, my neck feels stiff, and light bothers my eyes…");
+  document.getElementById('sendBtn').disabled = false;
+  setTimeout(() => {
+    botBubble(`<strong>New session started. 👋</strong><br><br>Describe your symptoms again and I'll analyze them fresh.`);
+    setProgress(5);
+  }, 300);
+}
+</script>
+</body>
+</html>

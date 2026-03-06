@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VitaGuard AI — First Aid Guidance Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #f5f0e8;
+  --bg2:       #ede8dc;
+  --white:     #fdfaf5;
+  --ink:       #1a1612;
+  --ink2:      #3d3530;
+  --muted:     #8c7e72;
+  --border:    #d5cdc0;
+  --accent:    #1a7a5e;
+  --accent-lt: #e8f5f0;
+  --warn:      #d4870a;
+  --danger:    #c0392b;
+  --green:     #1a7a5e;
+  --green-bg:  #e8f5f0;
+  --yellow:    #d4870a;
+  --yellow-bg: #fef5e4;
+  --red:       #c0392b;
+  --red-bg:    #fdecea;
+  --shadow:    0 4px 24px rgba(26,22,18,.1);
+  --shadow-lg: 0 12px 48px rgba(26,22,18,.15);
+  --font-h:    'Playfair Display', Georgia, serif;
+  --font-b:    'Outfit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-b);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: .5;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── NAVBAR ── */
+#navbar {
+  position: sticky; top: 0; z-index: 500;
+  background: rgba(245,240,232,.95);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px; height: 64px;
+}
+.nav-logo {
+  font-family: var(--font-h); font-size: 1.25rem; font-weight: 900;
+  color: var(--ink); display: flex; align-items: center; gap: 9px;
+  text-decoration: none;
+}
+.nav-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); display: inline-block;
+  animation: dot-breathe 3s ease-in-out infinite;
+}
+@keyframes dot-breathe { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.7} }
+.nav-badge {
+  background: var(--accent-lt); color: var(--accent);
+  font-size: .68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 50px; border: 1px solid rgba(26,122,94,.2);
+}
+.nav-badge.danger-badge {
+  background: var(--red-bg); color: var(--red);
+  border-color: rgba(192,57,43,.2);
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-btn {
+  background: none; border: 1.5px solid var(--border); cursor: pointer;
+  font-family: var(--font-b); font-size: .85rem; font-weight: 600;
+  color: var(--muted); padding: 7px 16px; border-radius: 50px; transition: all .2s;
+}
+.nav-btn:hover { color: var(--ink); border-color: var(--ink); }
+.nav-btn.primary { background: var(--red); color: var(--white); border-color: var(--red); }
+.nav-btn.primary:hover { background: #a93226; border-color: #a93226; }
+
+/* ── PROGRESS BAR ── */
+.chat-progress {
+  position: fixed; top: 64px; left: 0; right: 0;
+  height: 3px; background: var(--border); z-index: 200;
+}
+.chat-progress-fill {
+  height: 100%; background: var(--red);
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── LAYOUT ── */
+.chat-wrap { max-width: 740px; margin: 0 auto; padding: 50px 24px 160px; display: flex; flex-direction: column; gap: 0; }
+.chat-header { text-align: center; margin-bottom: 40px; }
+.chat-header .sec-label { font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 10px; display: block; }
+.chat-header h1 { font-family: var(--font-h); font-size: clamp(1.8rem,3vw,2.5rem); font-weight: 900; letter-spacing: -.5px; margin-bottom: 10px; }
+.chat-header p { color: var(--muted); font-size: .93rem; }
+
+/* ── DISCLAIMER BANNER ── */
+.disclaimer-banner {
+  background: #fff8f0; border: 1.5px solid rgba(212,135,10,.4);
+  border-radius: 16px; padding: 18px 20px; margin-bottom: 28px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.disclaimer-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+.disclaimer-text { font-size: .83rem; color: var(--ink2); line-height: 1.6; }
+.disclaimer-text strong { color: var(--warn); display: block; margin-bottom: 4px; font-size: .88rem; }
+.emergency-call {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--red-bg); color: var(--red); border: 1px solid rgba(192,57,43,.3);
+  border-radius: 50px; padding: 4px 14px; font-weight: 700; font-size: .82rem; margin-top: 8px;
+  text-decoration: none;
+}
+
+/* ── CHAT THREAD ── */
+.chat-thread { display: flex; flex-direction: column; gap: 18px; min-height: 60px; }
+
+/* ── BOT BUBBLE ── */
+.msg-bot { display: flex; gap: 12px; align-items: flex-start; animation: msg-in .35s cubic-bezier(.4,0,.2,1); }
+.bot-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--red); color: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 700; flex-shrink: 0;
+  font-family: var(--font-h); box-shadow: 0 2px 8px rgba(192,57,43,.3);
+}
+.bot-bubble {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px 20px 20px 4px; padding: 16px 20px;
+  max-width: 580px; box-shadow: 0 2px 12px rgba(26,22,18,.06);
+  color: var(--ink); font-size: .95rem; line-height: 1.65;
+}
+.bot-bubble strong { font-weight: 600; }
+
+/* ── USER BUBBLE ── */
+.msg-user { display: flex; justify-content: flex-end; animation: msg-in .35s cubic-bezier(.4,0,.2,1); }
+.user-bubble {
+  background: var(--red); color: var(--white);
+  border-radius: 20px 20px 4px 20px; padding: 12px 20px;
+  max-width: 440px; font-size: .93rem; line-height: 1.5; font-weight: 500;
+}
+@keyframes msg-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── TYPING ── */
+.typing-indicator { display: flex; gap: 12px; align-items: center; }
+.typing-dots {
+  display: flex; gap: 5px; align-items: center; padding: 14px 18px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px 20px 20px 4px; box-shadow: 0 2px 12px rgba(26,22,18,.06);
+}
+.typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: dot-bounce .9s infinite; }
+.typing-dots span:nth-child(2){animation-delay:.15s} .typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot-bounce { 0%,80%,100%{transform:translateY(0);opacity:.5} 40%{transform:translateY(-5px);opacity:1} }
+
+/* ── CATEGORY GRID ── */
+.category-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 14px; }
+.cat-btn {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 14px 10px;
+  text-align: center; cursor: pointer;
+  transition: all .2s; font-family: var(--font-b);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.cat-btn.explain-btn {
+  grid-column: span 3;
+  flex-direction: row; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, #fef5e4 0%, #fdecea 100%);
+  border-color: rgba(212,135,10,.4); border-style: dashed;
+}
+.cat-btn:hover { border-color: var(--red); background: var(--red-bg); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(192,57,43,.12); }
+.cat-btn .cat-icon { font-size: 1.6rem; line-height: 1; }
+.cat-btn .cat-label { font-size: .8rem; font-weight: 600; color: var(--ink2); line-height: 1.3; }
+
+/* ── YES/NO BUTTONS ── */
+.yn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.yn-btn {
+  flex: 1; min-width: 100px; padding: 11px 20px; border-radius: 50px;
+  font-family: var(--font-b); font-size: .9rem; font-weight: 600;
+  cursor: pointer; transition: all .18s; border: 1.5px solid var(--border);
+  background: var(--white); color: var(--ink);
+}
+.yn-btn:hover { transform: translateY(-1px); }
+.yn-btn.yes:hover { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+.yn-btn.no:hover  { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.yn-btn.selected-yes { background: var(--red); border-color: var(--red); color: white; }
+.yn-btn.selected-no  { background: var(--green); border-color: var(--green); color: white; }
+.yn-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ── SCALE BUTTONS ── */
+.scale-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.scale-btn {
+  padding: 9px 16px; border-radius: 50px;
+  font-family: var(--font-b); font-size: .85rem; font-weight: 600;
+  cursor: pointer; transition: all .18s;
+  border: 1.5px solid var(--border); background: var(--white); color: var(--ink);
+}
+.scale-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+.scale-btn.selected { background: var(--red); border-color: var(--red); color: white; }
+.scale-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── INPUT AREA ── */
+.chat-input-area {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(245,240,232,.97); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border); padding: 14px 24px; z-index: 100;
+}
+.chat-input-inner { max-width: 740px; margin: 0 auto; }
+.input-placeholder { text-align: center; font-size: .83rem; color: var(--muted); padding: 10px 0; font-style: italic; }
+.text-input-row { display: flex; gap: 10px; align-items: flex-end; }
+.nlp-textarea {
+  flex: 1; border: 1.5px solid var(--border); border-radius: 18px;
+  padding: 12px 18px; font-family: var(--font-b); font-size: .95rem;
+  background: var(--white); color: var(--ink); outline: none;
+  resize: none; transition: border-color .18s;
+  min-height: 48px; max-height: 140px; line-height: 1.5;
+}
+.nlp-textarea:focus { border-color: var(--red); }
+.nlp-textarea::placeholder { color: var(--muted); }
+.send-btn {
+  background: var(--red); color: var(--white); border: none;
+  border-radius: 50px; padding: 12px 24px; font-family: var(--font-b);
+  font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s;
+  white-space: nowrap; align-self: flex-end; min-height: 48px;
+}
+.send-btn:hover { background: #a93226; }
+.send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── SEVERITY RESULT CARD ── */
+.result-card { border-radius: 20px; padding: 24px; max-width: 600px; animation: msg-in .4s cubic-bezier(.4,0,.2,1); }
+.result-card.green { background: var(--white); border: 2px solid rgba(26,122,94,.3); }
+.result-card.yellow { background: var(--white); border: 2px solid rgba(212,135,10,.35); }
+.result-card.red { background: var(--white); border: 2px solid rgba(192,57,43,.4); }
+
+.severity-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.severity-icon { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+.severity-icon.green  { background: var(--green-bg); }
+.severity-icon.yellow { background: var(--yellow-bg); }
+.severity-icon.red    { background: var(--red-bg); }
+.severity-title { font-family: var(--font-h); font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+.severity-badge { display: inline-block; padding: 3px 14px; border-radius: 50px; font-size: .73rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.severity-badge.green  { background: var(--green-bg); color: var(--green); }
+.severity-badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
+.severity-badge.red    { background: var(--red-bg); color: var(--red); }
+
+.emergency-alert {
+  background: var(--red-bg); border: 1.5px solid rgba(192,57,43,.4);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.emergency-alert .alert-icon { font-size: 1.4rem; flex-shrink: 0; }
+.emergency-alert .alert-text { font-size: .87rem; font-weight: 600; color: var(--red); line-height: 1.4; }
+.emergency-alert .alert-num { font-size: 1.1rem; font-weight: 900; display: block; }
+
+.steps-section { margin-bottom: 16px; }
+.steps-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.steps-label::after { content:''; flex:1; height:1px; background: var(--border); }
+.step-list { display: flex; flex-direction: column; gap: 10px; }
+.step-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: white; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.step-num.green  { background: var(--green); }
+.step-num.yellow { background: var(--yellow); }
+.step-num.red    { background: var(--red); }
+.step-text { font-size: .88rem; color: var(--ink2); line-height: 1.5; }
+.step-text strong { color: var(--ink); display: block; font-size: .9rem; margin-bottom: 2px; }
+
+.do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.do-box, .dont-box { border-radius: 12px; padding: 12px 14px; }
+.do-box   { background: var(--green-bg); border: 1px solid rgba(26,122,94,.2); }
+.dont-box { background: var(--red-bg);   border: 1px solid rgba(192,57,43,.2); }
+.do-box .box-label   { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--green); margin-bottom: 8px; }
+.dont-box .box-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--red); margin-bottom: 8px; }
+.box-items { display: flex; flex-direction: column; gap: 5px; }
+.box-items span { font-size: .8rem; color: var(--ink2); line-height: 1.4; display: flex; gap: 6px; }
+
+.result-footer { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; }
+.ract-btn { background: var(--ink); color: var(--white); border: none; border-radius: 50px; padding: 10px 20px; font-family: var(--font-b); font-weight: 600; font-size: .88rem; cursor: pointer; transition: all .2s; }
+.ract-btn:hover { background: var(--red); }
+.ract-btn.outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink); }
+.ract-btn.outline:hover { border-color: var(--red); color: var(--red); }
+
+/* ── LOADER ── */
+.loader-screen { display: none; position: fixed; inset: 0; z-index: 999; background: var(--bg); flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+.loader-screen.show { display: flex; }
+.loader-bars { display: flex; gap: 6px; align-items: flex-end; height: 48px; }
+.lb { width: 8px; border-radius: 4px; background: var(--red); animation: bar-pulse 1s ease-in-out infinite; }
+.lb:nth-child(1){animation-delay:0s} .lb:nth-child(2){animation-delay:.15s} .lb:nth-child(3){animation-delay:.3s} .lb:nth-child(4){animation-delay:.45s} .lb:nth-child(5){animation-delay:.6s}
+@keyframes bar-pulse { 0%,100%{height:16px;opacity:.4} 50%{height:48px;opacity:1} }
+.loader-msg { font-family: var(--font-h); font-size:1.1rem; font-weight:700; color:var(--ink); }
+.loader-sub  { color:var(--muted); font-size:.85rem; }
+
+/* ── SECTION DIVIDER ── */
+.phase-divider { text-align:center; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin: 4px 0 2px; display:flex; align-items:center; gap:10px; }
+.phase-divider::before,.phase-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+@media(max-width:700px){
+  #navbar{padding:0 16px}
+  .chat-wrap{padding:36px 14px 140px}
+  .category-grid{grid-template-columns:repeat(3,1fr)}
+  .do-dont{grid-template-columns:1fr}
+  .bot-bubble{max-width:calc(100vw - 80px)}
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-right">
+    <span class="nav-badge danger-badge">🚨 Emergency First Aid</span>
+    <button class="nav-btn primary" onclick="resetAll()">🔄 New Assessment</button>
+  </div>
+</nav>
+
+<div class="loader-screen" id="loader">
+  <div class="loader-bars"><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div></div>
+  <div class="loader-msg" id="loaderMsg">Assessing situation…</div>
+  <div class="loader-sub">Generating first aid guidance</div>
+</div>
+
+<div class="chat-progress"><div class="chat-progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="chat-wrap">
+  <div class="chat-header">
+    <span class="sec-label">Emergency First Aid</span>
+    <h1>First Aid Guidance Assistant</h1>
+    <p>Structured, step-by-step first aid guidance for common injuries and emergencies.</p>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer-banner">
+    <div class="disclaimer-icon">⚠️</div>
+    <div class="disclaimer-text">
+      <strong>Medical Disclaimer — Please Read</strong>
+      This tool provides general first aid guidance for educational purposes only. It is <strong>not a substitute for professional medical care</strong> and does not diagnose, treat, or prescribe. Always trust trained medical personnel over this tool.
+      <br>
+      <a class="emergency-call" href="tel:112">📞 Call 112 immediately for life-threatening emergencies</a>
+    </div>
+  </div>
+
+  <div class="chat-thread" id="chatThread"></div>
+</div>
+
+<div class="chat-input-area">
+  <div class="chat-input-inner">
+    <div id="inputPlaceholder" class="input-placeholder">Select an option above to continue ↑</div>
+    <div id="nlpInputArea" style="display:none;">
+      <div class="text-input-row">
+        <textarea class="nlp-textarea" id="nlpTextarea" rows="1" placeholder="Describe what happened in your own words…"></textarea>
+        <button class="send-btn" id="nlpSendBtn" onclick="handleNLPSend()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   GROQ API CONFIG
+══════════════════════════════════════ */
+
+async function callGroq(userText, systemInstruction) {
+  let response;
+  try {
+    response = await fetch("/api/groq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 1800,
+        temperature: 0.3,
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user",   content: userText }
+        ]
+      })
+    });
+  } catch(e) { throw new Error("NETWORK"); }
+  if (!response.ok) {
+    const d = await response.json().catch(()=>({}));
+    throw new Error(d?.error?.message || `HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content || "";
+  if (!text) throw new Error("Empty response.");
+  return text;
+}
+
+/* ══════════════════════════════════════
+   DECISION TREE DATA
+══════════════════════════════════════ */
+const CATEGORIES = [
+  { id:"bleeding",   icon:"🩸", label:"Bleeding Wound" },
+  { id:"burn",       icon:"🔥", label:"Burn" },
+  { id:"fracture",   icon:"🦴", label:"Suspected Fracture" },
+  { id:"head",       icon:"🧠", label:"Head Injury" },
+  { id:"bite",       icon:"🐾", label:"Animal Bite" },
+  { id:"electric",   icon:"⚡", label:"Electric Shock" },
+  { id:"faint",      icon:"😵", label:"Fainting" },
+  { id:"choke",      icon:"😮‍💨", label:"Choking" },
+  { id:"nosebleed",  icon:"👃", label:"Nosebleed" },
+  { id:"explain",    icon:"💬", label:"Explain Yourself" },
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+const state = {
+  category: null,
+  categoryLabel: "",
+  categoryIcon: "",
+  phase: "category",   // category | nlp_initial | questions | result
+  initialDescription: "",  // for "explain yourself" mode
+  answers: [],             // [{question, answer}]
+  questionIndex: 0,
+  totalQuestionsAsked: 0,
+  MAX_QUESTIONS: 10,
+  MIN_QUESTIONS: 7,
+  readyToFinish: false,
+};
+
+/* ══════════════════════════════════════
+   DOM HELPERS
+══════════════════════════════════════ */
+const thread = () => document.getElementById("chatThread");
+function scroll() { setTimeout(() => window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),80); }
+function setProgress(p) { document.getElementById("progressFill").style.width = p+"%"; }
+function showLoader() { document.getElementById("loader").classList.add("show"); }
+function hideLoader() { document.getElementById("loader").classList.remove("show"); }
+
+function botBubble(html) {
+  const w = document.createElement("div");
+  w.className = "msg-bot";
+  w.innerHTML = `<div class="bot-avatar">FA</div><div class="bot-bubble">${html}</div>`;
+  thread().appendChild(w);
+  scroll();
+  return w;
+}
+
+function userBubble(text) {
+  const w = document.createElement("div");
+  w.className = "msg-user";
+  w.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+  thread().appendChild(w);
+  scroll();
+}
+
+function typingStart() {
+  const w = document.createElement("div");
+  w.className = "typing-indicator"; w.id = "typing";
+  w.innerHTML = `<div class="bot-avatar">FA</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  thread().appendChild(w); scroll();
+}
+function typingStop() { const el = document.getElementById("typing"); if(el) el.remove(); }
+
+function divider(text) {
+  const d = document.createElement("div");
+  d.className = "phase-divider"; d.textContent = text;
+  thread().appendChild(d);
+}
+
+function escapeHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function showPlaceholder() {
+  document.getElementById("inputPlaceholder").style.display = "block";
+  document.getElementById("nlpInputArea").style.display = "none";
+}
+function showNLPInput(placeholder) {
+  document.getElementById("inputPlaceholder").style.display = "none";
+  document.getElementById("nlpInputArea").style.display = "block";
+  const ta = document.getElementById("nlpTextarea");
+  if (placeholder) ta.placeholder = placeholder;
+  ta.value = "";
+  ta.style.height = "auto";
+  document.getElementById("nlpSendBtn").disabled = false;
+  setTimeout(() => ta.focus(), 100);
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+window.addEventListener("DOMContentLoaded", () => {
+  const ta = document.getElementById("nlpTextarea");
+  ta.addEventListener("input", () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 140) + "px"; });
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleNLPSend(); } });
+
+  setTimeout(() => {
+    botBubble(`<strong>Hello, I'm your First Aid Guidance Assistant. 🩺</strong><br><br>
+      I'll guide you through adaptive first aid instructions based on the situation.<br><br>
+      <strong>Please select the type of injury or emergency below:</strong>`);
+    showCategoryGrid();
+    setProgress(5);
+  }, 400);
+});
+
+/* ══════════════════════════════════════
+   CATEGORY SELECTION
+══════════════════════════════════════ */
+function showCategoryGrid() {
+  const grid = document.createElement("div");
+  grid.className = "msg-bot"; grid.id = "catGrid";
+  const inner = document.createElement("div");
+  inner.style.cssText = "margin-left:50px;";
+  const g = document.createElement("div");
+  g.className = "category-grid";
+  CATEGORIES.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "cat-btn" + (c.id === "explain" ? " explain-btn" : "");
+    btn.innerHTML = `<span class="cat-icon">${c.icon}</span><span class="cat-label">${c.label}${c.id === "explain" ? " — Describe in your own words" : ""}</span>`;
+    btn.onclick = () => selectCategory(c);
+    g.appendChild(btn);
+  });
+  inner.appendChild(g);
+  grid.appendChild(inner);
+  thread().appendChild(grid);
+  scroll();
+}
+
+function selectCategory(cat) {
+  const g = document.getElementById("catGrid");
+  if(g) g.remove();
+
+  state.category = cat.id;
+  state.categoryLabel = cat.label;
+  state.categoryIcon = cat.icon;
+  state.phase = "questions";
+  state.answers = [];
+  state.questionIndex = 0;
+  state.totalQuestionsAsked = 0;
+  state.readyToFinish = false;
+  state.initialDescription = "";
+
+  userBubble(`${cat.icon} ${cat.label}`);
+  divider(`Triage Assessment — ${cat.label}`);
+  setProgress(15);
+
+  if (cat.id === "explain") {
+    // NLP free-text mode — ask for initial description
+    setTimeout(() => {
+      botBubble(`I'm ready to help. <strong>Please describe the situation in your own words</strong> — what happened, to whom, when, and any symptoms or signs you've noticed. The more detail, the better I can guide you.`);
+      showNLPInput("e.g. My friend fell off a ladder and his arm looks bent, he's in a lot of pain and can't move it…");
+      state.phase = "nlp_initial";
+    }, 400);
+  } else {
+    // Predefined category — generate first question via AI
+    setTimeout(() => {
+      botBubble(`I'll ask you <strong>7–10 quick questions</strong> about the situation to determine severity and provide appropriate first aid instructions.<br><br><em style="color:var(--muted);font-size:.85rem">Answer as accurately as possible — your answers determine the guidance provided.</em>`);
+      setTimeout(() => generateNextQuestion(), 800);
+    }, 400);
+  }
+}
+
+/* ══════════════════════════════════════
+   NLP FREE-TEXT SEND (Explain Yourself)
+══════════════════════════════════════ */
+async function handleNLPSend() {
+  const ta = document.getElementById("nlpTextarea");
+  const text = ta.value.trim();
+  if (!text) return;
+  document.getElementById("nlpSendBtn").disabled = true;
+  userBubble(text);
+  ta.value = ""; ta.style.height = "auto";
+  showPlaceholder();
+
+  if (state.phase === "nlp_initial") {
+    state.initialDescription = text;
+    state.phase = "questions";
+    await generateNextQuestion();
+  }
+}
+
+/* ══════════════════════════════════════
+   AI QUESTION GENERATION
+══════════════════════════════════════ */
+async function generateNextQuestion() {
+  typingStart();
+  setProgress(15 + (state.totalQuestionsAsked / state.MAX_QUESTIONS) * 55);
+
+  const qaHistory = state.answers.map((a,i) => `Q${i+1}: ${a.question}\nA: ${a.answer}`).join("\n\n");
+
+  const contextDesc = state.category === "explain"
+    ? `The user described the situation as: "${state.initialDescription}"`
+    : `Emergency category selected: ${state.categoryLabel}`;
+
+  const systemPrompt = `You are a first aid triage AI conducting an adaptive emergency assessment interview. You ask clinically relevant MCQ questions one at a time to determine the severity of a first aid situation.
+
+Given the emergency context and all previous Q&A, decide:
+1. Do you have enough information to provide first aid guidance? (You MUST ask at least ${state.MIN_QUESTIONS} questions before finishing, and no more than ${state.MAX_QUESTIONS} total.)
+2. If not ready, generate the single most important next question.
+
+Think like a first responder: ask about consciousness/responsiveness, breathing, bleeding, pain level, mechanism of injury, allergies, patient age, vital signs, and red flag symptoms.
+
+Respond ONLY with valid JSON — no markdown, no extra text:
+{
+  "readyToFinish": false,
+  "question": "The most critical next question to ask?",
+  "type": "yn",
+  "options": []
+}
+
+OR for multiple-choice:
+{
+  "readyToFinish": false,
+  "question": "Scale or multi-option question?",
+  "type": "mcq",
+  "options": ["Option A", "Option B", "Option C", "Option D"]
+}
+
+OR when ready (only after ${state.MIN_QUESTIONS}+ questions):
+{
+  "readyToFinish": true,
+  "question": "",
+  "type": "yn",
+  "options": []
+}
+
+Rules:
+- type "yn" = Yes/No question (options array should be empty)
+- type "mcq" = multiple choice (provide 3–4 options)
+- Never repeat a question already asked
+- Prioritize life-threatening signs early (unconsciousness, no breathing, severe bleeding)
+- Keep questions short, clear, and free of jargon
+- readyToFinish must be false for the first ${state.MIN_QUESTIONS} questions regardless`;
+
+  const userContent = `${contextDesc}
+
+Questions asked so far: ${state.totalQuestionsAsked} of max ${state.MAX_QUESTIONS} (minimum ${state.MIN_QUESTIONS} required)
+
+${qaHistory ? `Previous Q&A:\n${qaHistory}` : "No questions asked yet — generate the first and most critical question."}`;
+
+  try {
+    const raw = await callGroq(userContent, systemPrompt);
+    typingStop();
+
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g,"").trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      botBubble("⚠️ Trouble generating next question. Please try again.");
+      return;
+    }
+
+    if (parsed.readyToFinish && state.totalQuestionsAsked >= state.MIN_QUESTIONS) {
+      state.readyToFinish = true;
+      setTimeout(() => generateResult(), 400);
+      return;
+    }
+
+    // Force continue if not enough questions yet
+    state.totalQuestionsAsked++;
+    renderAIQuestion(parsed);
+
+  } catch(err) {
+    typingStop();
+    if (err.message === "NO_KEY") {
+      botBubble(`<strong>⚠️ Groq API key not set.</strong>`);
+    } else {
+      botBubble(`<strong>⚠️ API Error:</strong> ${escapeHtml(err.message)}`);
+    }
+  }
+}
+
+function renderAIQuestion(q) {
+  const qId = `q_ai_${state.totalQuestionsAsked}`;
+  const w = document.createElement("div");
+  w.className = "msg-bot";
+  w.id = qId;
+
+  let controlsHtml = "";
+  if (q.type === "yn") {
+    controlsHtml = `<div class="yn-row">
+      <button class="yn-btn yes" onclick="submitAIAnswer('Yes', '${qId}')">✓ Yes</button>
+      <button class="yn-btn no"  onclick="submitAIAnswer('No',  '${qId}')">✗ No</button>
+    </div>`;
+  } else {
+    const opts = (q.options || []).map(o =>
+      `<button class="scale-btn" onclick="submitAIAnswer('${escapeHtml(o)}', '${qId}')">${escapeHtml(o)}</button>`
+    ).join("");
+    controlsHtml = `<div class="scale-row">${opts}</div>`;
+  }
+
+  w.innerHTML = `<div class="bot-avatar">FA</div>
+    <div class="bot-bubble">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">
+        Question ${state.totalQuestionsAsked}
+      </div>
+      <strong>${escapeHtml(q.question)}</strong>
+      ${controlsHtml}
+    </div>`;
+
+  thread().appendChild(w);
+  scroll();
+
+  // Store current question text for answer logging
+  state._currentQuestion = q.question;
+}
+
+function submitAIAnswer(answer, qId) {
+  const qEl = document.getElementById(qId);
+  if(qEl) {
+    qEl.querySelectorAll("button").forEach(b => {
+      b.disabled = true;
+      const label = b.textContent.replace(/^[✓✗]\s*/,"").trim();
+      if (label === answer || b.textContent.trim() === answer) {
+        if (answer === "Yes") b.classList.add("selected-yes");
+        else if (answer === "No") b.classList.add("selected-no");
+        else b.classList.add("selected");
+      }
+    });
+  }
+
+  state.answers.push({ question: state._currentQuestion, answer });
+  userBubble(answer);
+
+  if (state.totalQuestionsAsked >= state.MAX_QUESTIONS) {
+    setTimeout(() => generateResult(), 600);
+  } else {
+    setTimeout(() => generateNextQuestion(), 600);
+  }
+}
+
+/* ══════════════════════════════════════
+   GENERATE RESULT VIA GROQ
+══════════════════════════════════════ */
+async function generateResult() {
+  setProgress(80);
+  showLoader();
+  showPlaceholder();
+
+  const contextDesc = state.category === "explain"
+    ? `The user described the situation as: "${state.initialDescription}"\nEmergency type: Unspecified (user explained in their own words)`
+    : `Emergency category: ${state.categoryLabel}`;
+
+  const qaText = state.answers.map((a,i) => `Q${i+1}: ${a.question}\nAnswer: ${a.answer}`).join("\n\n");
+
+  const systemPrompt = `You are a first aid guidance AI. Based on the emergency description and all triage Q&A, generate comprehensive, actionable first aid instructions AND determine the severity.
+
+You must respond ONLY with valid JSON — no markdown fences, no extra text:
+{
+  "severity": "green",
+  "summary": "1-2 sentence clinical summary of what is happening",
+  "steps": [
+    { "title": "Short action title", "detail": "Clear instruction in plain language." }
+  ],
+  "dos": ["Do this", "Do that"],
+  "donts": ["Don't do this", "Don't do that"],
+  "whenToCallEmergency": "Specific triggers that require calling 112 immediately",
+  "recoveryNote": "What to watch for in the next few hours"
+}
+
+Severity rules:
+- "green" = minor, self-manageable at home
+- "yellow" = moderate, needs monitoring and likely medical review within hours
+- "red" = severe, life-threatening, needs immediate 112 call
+
+Content rules:
+- steps: 5–7 clear, numbered first aid steps specific to this injury and severity
+- dos: 3–4 specific, actionable items
+- donts: 3–4 critical safety warnings (very important)
+- Language: simple, calm, direct — the person may be panicking
+- NEVER diagnose, prescribe medications, or claim to replace professional care
+- For red severity: first step MUST be "Call 112 immediately"
+- Tailor ALL guidance to the specific answers given — don't give generic advice`;
+
+  const userContent = `${contextDesc}
+
+Triage Q&A (${state.answers.length} questions answered):
+${qaText}`;
+
+  try {
+    const raw = await callGroq(userContent, systemPrompt);
+    hideLoader();
+
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g,"").trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      hideLoader();
+      botBubble("⚠️ Trouble generating guidance. Please try again.");
+      return;
+    }
+
+    const cat = CATEGORIES.find(c => c.id === state.category) || { icon:"💬", label: state.categoryLabel };
+    renderResultCard(parsed, parsed.severity || "yellow", cat);
+    setProgress(100);
+
+  } catch(err) {
+    hideLoader();
+    if (err.message === "NO_KEY") {
+      botBubble(`<strong>⚠️ Groq API key not set.</strong><br><br>
+        Open this file in a text editor, find:<br>
+        <code style="background:var(--bg2);padding:3px 8px;border-radius:6px">const GROQ_API_KEY = "";</code><br><br>
+        Paste your key from <a href="https://console.groq.com" target="_blank" style="color:var(--accent);font-weight:600">console.groq.com</a> and save.`);
+    } else {
+      botBubble(`<strong>⚠️ API Error:</strong> ${escapeHtml(err.message)}<br>Please check your API key or try again.`);
+    }
+  }
+}
+
+/* ══════════════════════════════════════
+   RENDER RESULT CARD
+══════════════════════════════════════ */
+function renderResultCard(data, severity, cat) {
+  divider("First Aid Assessment Result");
+
+  const severityConfig = {
+    green:  { label:"🟢 Minor — Self-manageable",   badge:"✅ MINOR",   icon:"🩹" },
+    yellow: { label:"🟡 Moderate — Monitor Closely", badge:"⚠️ MODERATE", icon:"🏥" },
+    red:    { label:"🔴 Severe — Immediate Medical Attention Required", badge:"🚨 SEVERE", icon:"🚑" },
+  };
+  const sc = severityConfig[severity];
+
+  const stepsHtml = (data.steps||[]).map((s,i) => `
+    <div class="step-item">
+      <div class="step-num ${severity}">${i+1}</div>
+      <div class="step-text"><strong>${escapeHtml(s.title)}</strong>${escapeHtml(s.detail)}</div>
+    </div>`).join("");
+
+  const dosHtml = (data.dos||[]).map(d => `<span>✓ ${escapeHtml(d)}</span>`).join("");
+  const dontsHtml = (data.donts||[]).map(d => `<span>✗ ${escapeHtml(d)}</span>`).join("");
+
+  const emergencyAlert = severity === "red" ? `
+    <div class="emergency-alert">
+      <div class="alert-icon">🚨</div>
+      <div class="alert-text">
+        This is a SEVERE emergency — seek immediate medical attention!
+        <span class="alert-num">📞 Call 112 Now</span>
+        ${escapeHtml(data.whenToCallEmergency || "")}
+      </div>
+    </div>` : severity === "yellow" ? `
+    <div style="background:var(--yellow-bg);border:1px solid rgba(212,135,10,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;color:var(--yellow);font-weight:600;">
+      ⚠️ Monitor closely — if condition worsens, call 112 immediately.
+    </div>` : "";
+
+  const card = document.createElement("div");
+  card.className = "msg-bot";
+  card.innerHTML = `
+    <div class="bot-avatar">FA</div>
+    <div class="result-card ${severity}">
+
+      <div class="severity-header">
+        <div class="severity-icon ${severity}">${sc.icon}</div>
+        <div>
+          <div class="severity-title">${cat.icon} ${escapeHtml(cat.label || "")} — Assessment Complete</div>
+          <span class="severity-badge ${severity}">${sc.badge}</span>
+        </div>
+      </div>
+
+      <div style="font-size:.87rem;color:var(--ink2);line-height:1.6;padding:12px 14px;background:var(--bg);
+                  border-radius:12px;border:1px solid var(--border);margin-bottom:16px;">
+        ${escapeHtml(data.summary||"")}
+      </div>
+
+      ${emergencyAlert}
+
+      <div class="steps-section">
+        <div class="steps-label">Step-by-Step First Aid Instructions</div>
+        <div class="step-list">${stepsHtml}</div>
+      </div>
+
+      <div class="steps-label" style="margin-top:16px">Do's &amp; Don'ts</div>
+      <div class="do-dont">
+        <div class="do-box"><div class="box-label">✅ Do</div><div class="box-items">${dosHtml}</div></div>
+        <div class="dont-box"><div class="box-label">🚫 Don't</div><div class="box-items">${dontsHtml}</div></div>
+      </div>
+
+      ${data.whenToCallEmergency && severity !== "red" ? `
+      <div style="background:var(--red-bg);border:1px solid rgba(192,57,43,.2);border-radius:12px;
+                  padding:12px 14px;margin-top:14px;">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+                    color:var(--red);margin-bottom:5px;">📞 Call 112 If You See</div>
+        <div style="font-size:.83rem;color:var(--ink2);">${escapeHtml(data.whenToCallEmergency)}</div>
+      </div>` : ""}
+
+      ${data.recoveryNote ? `
+      <div style="background:var(--accent-lt);border:1px solid rgba(26,122,94,.2);border-radius:12px;
+                  padding:12px 14px;margin-top:12px;">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+                    color:var(--accent);margin-bottom:5px;">🕐 What To Watch For</div>
+        <div style="font-size:.83rem;color:var(--ink2);">${escapeHtml(data.recoveryNote)}</div>
+      </div>` : ""}
+
+      <div style="background:var(--yellow-bg);border:1px solid rgba(212,135,10,.2);border-radius:12px;
+                  padding:12px 14px;margin-top:14px;font-size:.78rem;color:var(--ink2);line-height:1.55;">
+        <strong style="color:var(--warn);">⚠️ Disclaimer:</strong> This guidance is for <strong>educational purposes only</strong>
+        and does not replace professional medical care. Always consult a healthcare professional.
+      </div>
+
+      <div class="result-footer">
+        <button class="ract-btn" onclick="resetAll()">🔄 Assess New Injury</button>
+        <button class="ract-btn outline" onclick="window.print()">🖨️ Print Guide</button>
+      </div>
+    </div>`;
+
+  thread().appendChild(card);
+  scroll();
+
+  setTimeout(() => {
+    botBubble(`✅ Assessment complete. <strong>Follow the steps above carefully.</strong><br><br>
+      ${severity === "red" ? "⚡ <strong>This is a severe case — please call 112 immediately if you haven't already.</strong>" :
+        severity === "yellow" ? "👁️ Keep monitoring the person closely. If symptoms worsen, call 112." :
+        "🩹 This appears manageable with basic first aid. Monitor for any changes."}
+      <br><br><em style="color:var(--muted);font-size:.83rem">Start a new assessment anytime using the "Assess New Injury" button above.</em>`);
+    scroll();
+    state.phase = "result";
+  }, 600);
+}
+
+/* ══════════════════════════════════════
+   RESET
+══════════════════════════════════════ */
+function resetAll() {
+  state.category = null;
+  state.categoryLabel = "";
+  state.categoryIcon = "";
+  state.phase = "category";
+  state.initialDescription = "";
+  state.answers = [];
+  state.questionIndex = 0;
+  state.totalQuestionsAsked = 0;
+  state.readyToFinish = false;
+  thread().innerHTML = "";
+  setProgress(0);
+  showPlaceholder();
+  setTimeout(() => {
+    botBubble(`<strong>New assessment started. 🩺</strong><br><br>Please select the type of injury or emergency below:`);
+    showCategoryGrid();
+    setProgress(5);
+  }, 300);
+}
+</script>
+</body>
+</html>

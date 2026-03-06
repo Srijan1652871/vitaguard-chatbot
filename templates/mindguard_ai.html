@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MindGuard AI — Emotional Wellness Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #f5f0e8;
+  --bg2:       #ede8dc;
+  --white:     #fdfaf5;
+  --ink:       #1a1612;
+  --ink2:      #3d3530;
+  --muted:     #8c7e72;
+  --border:    #d5cdc0;
+  --accent:    #1a7a5e;
+  --accent-lt: #e8f5f0;
+  --accent2:   #15644e;
+  --warn:      #d4870a;
+  --warn-bg:   #fef6e8;
+  --danger:    #c0392b;
+  --green:     #1a7a5e;
+  --green-bg:  #e8f5f0;
+  --yellow:    #d4870a;
+  --yellow-bg: #fef5e4;
+  --red:       #c0392b;
+  --red-bg:    #fdecea;
+  --blue:      #3a6fa5;
+  --shadow:    0 4px 24px rgba(26,22,18,.1);
+  --shadow-lg: 0 12px 48px rgba(26,22,18,.15);
+  --font-h:    'Playfair Display', Georgia, serif;
+  --font-b:    'Outfit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-b); font-size: 16px; line-height: 1.6; min-height: 100vh; }
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: .5;
+}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── NAVBAR ── */
+#navbar {
+  position: sticky; top: 0; z-index: 500;
+  background: rgba(245,240,232,.95); backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px; height: 64px;
+}
+.nav-logo {
+  font-family: var(--font-h); font-size: 1.25rem; font-weight: 900;
+  color: var(--ink); display: flex; align-items: center; gap: 9px; text-decoration: none;
+}
+.nav-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  display: inline-block; animation: dot-breathe 3s ease-in-out infinite;
+}
+@keyframes dot-breathe { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.7} }
+.nav-badge {
+  background: var(--accent-lt); color: var(--accent);
+  font-size: .68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 50px; border: 1px solid rgba(26,122,94,.2);
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-btn {
+  background: none; border: 1.5px solid var(--border); cursor: pointer;
+  font-family: var(--font-b); font-size: .85rem; font-weight: 600;
+  color: var(--muted); padding: 7px 16px; border-radius: 50px; transition: all .2s;
+}
+.nav-btn:hover { color: var(--ink); border-color: var(--ink); }
+.nav-btn.primary { background: var(--accent); color: var(--white); border-color: var(--accent); }
+.nav-btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+
+/* ── PROGRESS ── */
+.chat-progress { position: fixed; top: 64px; left: 0; right: 0; height: 3px; background: var(--border); z-index: 200; }
+.chat-progress-fill { height: 100%; background: var(--accent); transition: width .5s cubic-bezier(.4,0,.2,1); border-radius: 0 2px 2px 0; }
+
+/* HERO */
+#home { max-width: 960px; margin: 0 auto; padding: 80px 24px 60px; display: flex; flex-direction: column; text-align: center; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.hero-label { font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; display: block; }
+.hero-h1 { font-family: var(--font-h); font-size: clamp(2rem,4vw,3rem); font-weight: 900; line-height: 1.15; letter-spacing: -.5px; margin-bottom: 18px; }
+.hero-sub { color: var(--muted); font-size: .97rem; line-height: 1.7; margin-bottom: 30px; }
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--ink); color: var(--white); border: none; border-radius: 50px;
+  padding: 14px 28px; font-family: var(--font-b); font-weight: 600; font-size: .95rem;
+  cursor: pointer; transition: all .25s; box-shadow: 0 4px 20px rgba(26,22,18,.2);
+}
+.hero-cta:hover { background: var(--accent); transform: translateY(-2px); }
+.hero-cta .arrow { transition: transform .2s; }
+.hero-cta:hover .arrow { transform: translateX(4px); }
+.hero-right { display: flex; flex-direction: column; gap: 14px; }
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 700px; /* Limits width to keep text readable while centered */
+}
+.feature-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { background: var(--white); border: 1px solid var(--border); border-radius: 50px; padding: 8px 16px; font-size: .82rem; font-weight: 500; color: var(--ink2); display: flex; align-items: center; gap: 6px; }
+.info-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); }
+.info-card .ic-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
+.info-card .ic-title { font-family: var(--font-h); font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
+.info-card .ic-text { font-size: .84rem; color: var(--ink2); line-height: 1.7; }
+.info-card .ic-text strong { color: var(--accent); }
+
+/* CHAT SECTION */
+#chat { max-width: 740px; margin: 0 auto; padding: 0 24px 200px; }
+.section-header { text-align: center; margin-bottom: 36px; }
+.section-header .sec-label { font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
+.section-header h2 { font-family: var(--font-h); font-size: clamp(1.6rem,2.8vw,2.2rem); font-weight: 900; }
+.disclaimer-banner { background: var(--warn-bg); border: 1.5px solid rgba(212,135,10,.3); border-radius: 16px; padding: 16px 20px; margin-bottom: 28px; display: flex; gap: 12px; align-items: flex-start; }
+.disc-icon { font-size: 1.3rem; flex-shrink: 0; }
+.disc-text { font-size: .82rem; color: var(--ink2); line-height: 1.6; }
+.disc-text strong { color: var(--warn); display: block; margin-bottom: 3px; font-size: .86rem; }
+.chat-thread { display: flex; flex-direction: column; gap: 18px; min-height: 80px; }
+
+/* BOT BUBBLE */
+.msg-bot { display: flex; gap: 12px; align-items: flex-start; animation: msg-in .35s cubic-bezier(.4,0,.2,1); }
+.bot-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--ink); color: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 700; flex-shrink: 0;
+  font-family: var(--font-h); box-shadow: 0 2px 8px rgba(26,22,18,.2);
+}
+.bot-bubble { background: var(--white); border: 1px solid var(--border); border-radius: 20px 20px 20px 4px; padding: 16px 20px; max-width: 580px; box-shadow: 0 2px 12px rgba(26,22,18,.06); font-size: .95rem; line-height: 1.65; }
+.bot-bubble strong { font-weight: 600; }
+.bot-bubble .hint { display: block; margin-top: 6px; font-size: .82rem; color: var(--muted); font-style: italic; }
+
+/* USER BUBBLE */
+.msg-user { display: flex; justify-content: flex-end; animation: msg-in .35s cubic-bezier(.4,0,.2,1); }
+.user-bubble { background: var(--accent); color: var(--white); border-radius: 20px 20px 4px 20px; padding: 12px 20px; max-width: 440px; font-size: .93rem; line-height: 1.5; font-weight: 500; }
+@keyframes msg-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* TYPING */
+.typing-indicator { display: flex; gap: 12px; align-items: center; }
+.typing-dots { display: flex; gap: 5px; align-items: center; padding: 14px 18px; background: var(--white); border: 1px solid var(--border); border-radius: 20px 20px 20px 4px; box-shadow: 0 2px 12px rgba(26,22,18,.06); }
+.typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: dot-bounce .9s infinite; }
+.typing-dots span:nth-child(2){animation-delay:.15s} .typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot-bounce { 0%,80%,100%{transform:translateY(0);opacity:.5} 40%{transform:translateY(-5px);opacity:1} }
+
+/* EMOTION BUTTONS */
+.emotion-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.emo-btn { background: var(--white); border: 1.5px solid var(--border); border-radius: 50px; padding: 10px 20px; font-family: var(--font-b); font-size: .88rem; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 7px; }
+.emo-btn:hover { border-color: var(--accent); background: var(--accent-lt); color: var(--accent); transform: translateY(-1px); }
+.emo-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
+.emo-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* MCQ OPTION BUTTONS */
+.opt-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.opt-btn { background: var(--white); border: 1.5px solid var(--border); border-radius: 50px; padding: 9px 18px; font-family: var(--font-b); font-size: .87rem; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .18s; }
+.opt-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+.opt-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
+.opt-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* DIVIDER */
+.phase-divider { text-align:center; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin:4px 0 2px; display:flex; align-items:center; gap:10px; }
+.phase-divider::before,.phase-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* RESULT CARD */
+.result-card { border-radius: 20px; padding: 26px; max-width: 600px; animation: msg-in .4s cubic-bezier(.4,0,.2,1); background: var(--white); border: 1.5px solid var(--border); box-shadow: var(--shadow); }
+.result-header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.result-emotion-icon { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; background: var(--accent-lt); border: 2px solid rgba(26,122,94,.3); }
+.result-title { font-family: var(--font-h); font-size: 1.1rem; font-weight: 700; margin-bottom: 5px; }
+.severity-badge { display: inline-block; padding: 3px 14px; border-radius: 50px; font-size: .73rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.severity-badge.green { background: var(--green-bg); color: var(--green); }
+.severity-badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
+.severity-badge.red { background: var(--red-bg); color: var(--red); }
+.result-summary { font-size: .88rem; color: var(--ink2); line-height: 1.65; padding: 12px 14px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; }
+.sec-lbl { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.sec-lbl::after { content:''; flex:1; height:1px; background:var(--border); }
+.coping-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+.coping-item { display: flex; gap: 12px; align-items: flex-start; padding: 11px 14px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+.coping-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.coping-text { font-size: .86rem; color: var(--ink2); line-height: 1.5; }
+.coping-text strong { display: block; font-size: .88rem; color: var(--ink); margin-bottom: 1px; }
+.crisis-alert { background: var(--red-bg); border: 1.5px solid rgba(192,57,43,.35); border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; display: flex; gap: 12px; }
+.crisis-alert .ca-icon { font-size: 1.4rem; flex-shrink: 0; }
+.crisis-alert .ca-text { font-size: .87rem; color: var(--red); font-weight: 600; line-height: 1.5; }
+.crisis-alert .ca-num { font-size: 1rem; font-weight: 900; display: block; margin-top: 4px; }
+.crisis-alert .ca-sub { font-size: .8rem; font-weight: 400; color: var(--ink2); display: block; margin-top: 4px; }
+.result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.ract-btn { background: var(--ink); color: var(--white); border: none; border-radius: 50px; padding: 10px 20px; font-family: var(--font-b); font-weight: 600; font-size: .88rem; cursor: pointer; transition: all .2s; }
+.ract-btn:hover { background: var(--accent); }
+.ract-btn.outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink); }
+.ract-btn.outline:hover { border-color: var(--accent); color: var(--accent); }
+.ract-btn.interact-btn { background: var(--accent); color: var(--white); font-size: .92rem; padding: 12px 26px; }
+.ract-btn.interact-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+/* COUNSELLOR RESPONSE */
+.counsellor-response { background: var(--white); border: 1px solid var(--border); border-radius: 20px 20px 20px 4px; padding: 18px 20px; max-width: 580px; box-shadow: 0 2px 12px rgba(26,22,18,.06); font-size: .95rem; line-height: 1.7; }
+.counsellor-response p { margin-bottom: 10px; }
+.counsellor-response p:last-child { margin-bottom: 0; }
+.satisfied-row { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.satisfied-btn { background: var(--green-bg); color: var(--green); border: 1.5px solid rgba(26,122,94,.3); border-radius: 50px; padding: 8px 20px; font-family: var(--font-b); font-size: .85rem; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 6px; }
+.satisfied-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.satisfied-btn:disabled { opacity: .5; cursor: not-allowed; }
+.satisfied-label { font-size: .78rem; color: var(--muted); font-style: italic; }
+
+/* FIXED INPUT */
+.chat-input-area { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(245,240,232,.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 14px 24px; z-index: 100; }
+.chat-input-inner { max-width: 740px; margin: 0 auto; }
+.text-input-row { display: flex; gap: 10px; align-items: flex-end; }
+.mind-textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 18px; font-family: var(--font-b); font-size: .95rem; background: var(--white); color: var(--ink); outline: none; resize: none; transition: border-color .18s; min-height: 48px; max-height: 120px; line-height: 1.5; }
+.mind-textarea:focus { border-color: var(--accent); }
+.mind-textarea::placeholder { color: var(--muted); }
+.send-btn { background: var(--accent); color: var(--white); border: none; border-radius: 50px; padding: 12px 22px; font-family: var(--font-b); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; min-height: 48px; }
+.send-btn:hover { background: var(--accent2); }
+.send-btn:disabled { opacity: .5; cursor: not-allowed; }
+.input-hint { font-size: .78rem; color: var(--muted); text-align: center; padding: 6px 0 0; font-style: italic; }
+
+/* LOADER */
+.loader-screen { display: none; position: fixed; inset: 0; z-index: 999; background: var(--bg); flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+.loader-screen.show { display: flex; }
+.loader-bars { display: flex; gap: 6px; align-items: flex-end; height: 48px; }
+.lb { width: 8px; border-radius: 4px; background: var(--accent); animation: bar-pulse 1s ease-in-out infinite; }
+.lb:nth-child(1){animation-delay:0s} .lb:nth-child(2){animation-delay:.15s} .lb:nth-child(3){animation-delay:.3s} .lb:nth-child(4){animation-delay:.45s} .lb:nth-child(5){animation-delay:.6s}
+@keyframes bar-pulse { 0%,100%{height:16px;opacity:.4} 50%{height:48px;opacity:1} }
+.loader-msg { font-family: var(--font-h); font-size:1.1rem; font-weight:700; color:var(--ink); }
+.loader-sub { color:var(--muted); font-size:.85rem; }
+
+@media(max-width:768px) {
+  #navbar { padding: 0 16px; }
+  #home { grid-template-columns: 1fr; gap: 32px; padding: 48px 16px 32px; }
+  #chat { padding: 0 16px 200px; }
+  .result-actions { flex-direction: column; }
+  .bot-bubble { max-width: calc(100vw - 80px); }
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-right">
+    <span class="nav-badge">🧠 Emotional Wellness</span>
+    <button class="nav-btn primary" onclick="document.getElementById('chat').scrollIntoView({behavior:'smooth'})">Start Check-In →</button>
+  </div>
+</nav>
+
+<div class="loader-screen" id="loader">
+  <div class="loader-bars"><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div></div>
+  <div class="loader-msg" id="loaderMsg">Reflecting on your responses…</div>
+  <div class="loader-sub">Generating personalised guidance with Groq AI</div>
+</div>
+
+<div class="chat-progress"><div class="chat-progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<!-- HOME -->
+<section id="home">
+  <div class="hero-left">
+    <span class="hero-label">AI Emotional Wellness</span>
+    <h1 class="hero-h1">Your AI Emotional Wellness Companion</h1>
+    <p class="hero-sub">Complete a gentle, guided emotional check-in. Get personalised coping insights and talk one-on-one with your AI counsellor — no judgement, no diagnosis, no time limit.</p>
+    <button class="hero-cta" onclick="document.getElementById('chat').scrollIntoView({behavior:'smooth'})">
+      Start Emotional Check-In <span class="arrow">→</span>
+    </button>
+  </div>
+</section>
+
+<!-- CHAT -->
+<section id="chat">
+  <div class="section-header">
+    <span class="sec-label">Emotional Check-In</span>
+    <h2>How are you feeling today?</h2>
+  </div>
+  <div class="disclaimer-banner">
+    <div class="disc-icon">💛</div>
+    <div class="disc-text">
+      <strong>A gentle reminder</strong>
+      MindGuard AI offers emotional support guidance only. It is <strong>not a licensed therapist</strong> and does not diagnose mental health conditions. If you're in crisis, please contact a mental health professional or call <strong>iCall (India): 9152987821</strong>.
+    </div>
+  </div>
+  <div class="chat-thread" id="chatThread"></div>
+</section>
+
+
+<!-- FIXED COUNSELLOR INPUT -->
+<div class="chat-input-area" id="chatInputArea" style="display:none">
+  <div class="chat-input-inner">
+    <div class="text-input-row">
+      <textarea class="mind-textarea" id="userTextarea" rows="1" placeholder="Share how you're feeling in your own words…"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="handleCounsellorSend()">Send</button>
+    </div>
+    <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+  </div>
+</div>
+
+<script>
+
+
+async function callGroq(messages, maxTokens = 1400) {
+  const res = await fetch("/api/groq", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:maxTokens,temperature:0.55,messages})
+  });
+  if (!res.ok) { const d = await res.json().catch(()=>({})); throw new Error(d?.error?.message||`HTTP ${res.status}`); }
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content || "";
+}
+
+/* ════════════════════════════════════
+   CRISIS DETECTION
+════════════════════════════════════ */
+const CRISIS_KW = ["suicide","kill myself","self harm","self-harm","don't want to live","dont want to live","end my life","want to die","hurt myself","no reason to live","not worth living","take my life"];
+function isCrisis(t) { return CRISIS_KW.some(k => t.toLowerCase().includes(k)); }
+
+/* ════════════════════════════════════
+   STATE
+════════════════════════════════════ */
+const state = {
+  phase:"emotion",
+  selectedEmotion:null,
+  answers:[],
+  totalQuestionsAsked:0,
+  MAX_Q:7, MIN_Q:5,
+  assessmentData:null,
+  counsellorHistory:[],
+  _curQ:null,
+  _sysPrompt:null
+};
+
+/* ════════════════════════════════════
+   EMOTIONS (expanded)
+════════════════════════════════════ */
+const EMOTIONS = [
+  {id:"sad",       icon:"😔", label:"Sad / Low"},
+  {id:"anxious",   icon:"😰", label:"Anxious"},
+  {id:"irritated", icon:"😤", label:"Irritated"},
+  {id:"exhausted", icon:"😩", label:"Exhausted"},
+  {id:"okay",      icon:"🙂", label:"Mostly Okay"},
+  {id:"lonely",    icon:"🥺", label:"Lonely"},
+  {id:"overwhelmed",icon:"🌀",label:"Overwhelmed"},
+  {id:"numb",      icon:"😶", label:"Numb / Empty"},
+  {id:"hopeless",  icon:"🌧️", label:"Hopeless"},
+  {id:"angry",     icon:"😡", label:"Angry"},
+  {id:"guilty",    icon:"😞", label:"Guilty / Ashamed"},
+  {id:"confused",  icon:"😕", label:"Confused / Lost"},
+];
+
+/* ════════════════════════════════════
+   DOM HELPERS
+════════════════════════════════════ */
+const thread = () => document.getElementById("chatThread");
+const setProgress = p => document.getElementById("progressFill").style.width = p+"%";
+const showLoader = (m="Reflecting on your responses…") => { document.getElementById("loaderMsg").textContent=m; document.getElementById("loader").classList.add("show"); };
+const hideLoader = () => document.getElementById("loader").classList.remove("show");
+const escHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const scrollB = () => setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),80);
+
+function botMsg(html) {
+  const w = document.createElement("div");
+  w.className="msg-bot";
+  w.innerHTML=`<div class="bot-avatar">MG</div><div class="bot-bubble">${html}</div>`;
+  thread().appendChild(w); scrollB(); return w;
+}
+function userMsg(text) {
+  const w=document.createElement("div"); w.className="msg-user";
+  w.innerHTML=`<div class="user-bubble">${escHtml(text)}</div>`;
+  thread().appendChild(w); scrollB();
+}
+function typingOn() {
+  const w=document.createElement("div"); w.className="typing-indicator"; w.id="typing";
+  w.innerHTML=`<div class="bot-avatar">MG</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  thread().appendChild(w); scrollB();
+}
+function typingOff() { const e=document.getElementById("typing"); if(e) e.remove(); }
+function divider(t) { const d=document.createElement("div"); d.className="phase-divider"; d.textContent=t; thread().appendChild(d); }
+
+/* ════════════════════════════════════
+   INIT
+════════════════════════════════════ */
+window.addEventListener("DOMContentLoaded",()=>{
+  const ta=document.getElementById("userTextarea");
+  ta.addEventListener("input",()=>{ta.style.height="auto";ta.style.height=Math.min(ta.scrollHeight,120)+"px";});
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleCounsellorSend();}});
+  setTimeout(startChat,500);
+});
+
+function startChat() {
+  botMsg(`<strong>Hello 💛 I'm MindGuard, your emotional wellness companion.</strong><br><br>
+    I'm here to listen without judgement and offer gentle, personalised support. Let's start with how you're feeling right now.<br><br>
+    <em class="hint">Everything you share stays private and is never stored.</em>`);
+  setProgress(5);
+  setTimeout(askEmotion, 1000);
+}
+
+/* ════════════════════════════════════
+   EMOTION SELECTION
+════════════════════════════════════ */
+function askEmotion() {
+  const w = document.createElement("div");
+  w.className = "msg-bot";
+  w.id = "emotionMsg";
+
+  const avatar = document.createElement("div");
+  avatar.className = "bot-avatar";
+  avatar.textContent = "MG";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bot-bubble";
+  bubble.innerHTML = `<strong>How have you been feeling lately?</strong><br><span class="hint">Choose the option that feels closest to your experience right now.</span>`;
+
+  const grid = document.createElement("div");
+  grid.className = "emotion-grid";
+
+  EMOTIONS.forEach(e => {
+    const btn = document.createElement("button");
+    btn.className = "emo-btn";
+    btn.textContent = `${e.icon} ${e.label}`;
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#emotionMsg .emo-btn").forEach(b => { b.disabled = true; b.classList.remove("selected"); });
+      btn.classList.add("selected");
+      state.selectedEmotion = { id: e.id, label: e.label, icon: e.icon };
+      state.answers = [];
+      state.totalQuestionsAsked = 0;
+      userMsg(`${e.icon} ${e.label}`);
+      state.phase = "questions";
+      setTimeout(() => {
+        divider("Emotional Assessment");
+        botMsg(`I hear you — feeling <strong>${e.label.toLowerCase()}</strong> can be really difficult to carry. I'd like to ask you a few gentle questions to better understand what you're going through. Take your time with each one. There are no right or wrong answers.`);
+        setTimeout(generateNextQuestion, 900);
+      }, 500);
+      setProgress(18);
+    });
+    grid.appendChild(btn);
+  });
+
+  bubble.appendChild(grid);
+  w.appendChild(avatar);
+  w.appendChild(bubble);
+  thread().appendChild(w);
+  scrollB();
+  setProgress(10);
+}
+
+function selectEmotion(id, label, icon, btn) {
+  // kept for legacy safety — main logic now in askEmotion listeners
+}
+
+/* ════════════════════════════════════
+   DYNAMIC AI QUESTION GENERATION
+════════════════════════════════════ */
+async function generateNextQuestion() {
+  typingOn();
+  setProgress(18 + (state.totalQuestionsAsked / state.MAX_Q) * 50);
+
+  const history = state.answers.map((a,i)=>`Q${i+1}: ${a.q}\nA: ${a.a}`).join("\n\n");
+
+  const sys = `You are a compassionate AI emotional wellness counsellor. You generate one gentle MCQ question at a time to understand a person's emotional state in depth.
+
+Emotion selected: ${state.selectedEmotion.icon} ${state.selectedEmotion.label}
+Questions asked so far: ${state.totalQuestionsAsked} (minimum ${state.MIN_Q} required, maximum ${state.MAX_Q})
+
+Focus areas to explore: how long they've been feeling this way, sleep quality, appetite and energy, concentration and daily functioning, social connection, physical symptoms, known triggers, support systems, and coping patterns.
+
+Respond ONLY with valid JSON — no markdown, no extra text:
+{
+  "readyToAssess": false,
+  "question": "Your warm, empathetic question?",
+  "options": ["Option A", "Option B", "Option C", "Option D"]
+}
+
+When you have enough insight (minimum ${state.MIN_Q} questions asked):
+{
+  "readyToAssess": true,
+  "question": "",
+  "options": []
+}
+
+Rules:
+- Always provide 3–4 options covering the full range of likely experiences
+- Questions must be non-clinical, warm, and non-judgmental
+- Options should sound like natural ways a person would describe their experience
+- Never repeat a previously asked question
+- Do NOT ask about suicidal ideation — this is handled separately`;
+
+  try {
+    const raw = await callGroq([
+      {role:"system",content:sys},
+      {role:"user",content:history||"No questions asked yet — generate the first, most important question."}
+    ], 500);
+    typingOff();
+
+    let p;
+    try { p=JSON.parse(raw.replace(/```json|```/g,"").trim()); }
+    catch(e) { botMsg("I had a brief moment of difficulty. Let me continue — how has your sleep been lately?"); return; }
+
+    if (p.readyToAssess && state.totalQuestionsAsked >= state.MIN_Q) {
+      setTimeout(generateResult, 400);
+      return;
+    }
+
+    state.totalQuestionsAsked++;
+    renderQuestion(p);
+  } catch(err) { typingOff(); apiError(err); }
+}
+
+function renderQuestion(q) {
+  const qId = `q_${state.totalQuestionsAsked}`;
+  state._curQ = q.question;
+
+  const w = document.createElement("div");
+  w.className = "msg-bot";
+  w.id = qId;
+
+  const bubble = document.createElement("div");
+  bubble.className = "bot-bubble";
+
+  const label = document.createElement("div");
+  label.style.cssText = "font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px";
+  label.textContent = `Question ${state.totalQuestionsAsked}`;
+
+  const qText = document.createElement("strong");
+  qText.textContent = q.question;
+
+  const grid = document.createElement("div");
+  grid.className = "opt-grid";
+
+  (q.options || []).forEach(optionText => {
+    const btn = document.createElement("button");
+    btn.className = "opt-btn";
+    btn.textContent = optionText;
+    btn.addEventListener("click", function() {
+      // Disable all buttons in this question
+      grid.querySelectorAll(".opt-btn").forEach(b => {
+        b.disabled = true;
+        b.classList.remove("selected");
+      });
+      btn.classList.add("selected");
+      // Record answer using the stored question text
+      state.answers.push({ q: state._curQ, a: optionText });
+      userMsg(optionText);
+      if (state.totalQuestionsAsked >= state.MAX_Q) {
+        setTimeout(generateResult, 600);
+      } else {
+        setTimeout(generateNextQuestion, 600);
+      }
+    });
+    grid.appendChild(btn);
+  });
+
+  bubble.appendChild(label);
+  bubble.appendChild(qText);
+  bubble.appendChild(grid);
+
+  const avatar = document.createElement("div");
+  avatar.className = "bot-avatar";
+  avatar.textContent = "MG";
+
+  w.appendChild(avatar);
+  w.appendChild(bubble);
+  thread().appendChild(w);
+  scrollB();
+}
+
+/* ════════════════════════════════════
+   GENERATE WELLNESS ASSESSMENT
+════════════════════════════════════ */
+async function generateResult() {
+  setProgress(80);
+  showLoader("Generating your wellness report…");
+
+  const qaText = state.answers.map((a,i)=>`Q${i+1}: ${a.q}\nA: ${a.a}`).join("\n\n");
+
+  const sys = `You are a compassionate emotional wellness AI. Based on the selected emotion and Q&A, generate a warm, empathetic wellness assessment.
+
+Respond ONLY with valid JSON — no markdown, no extra text:
+{
+  "severity": "green",
+  "severityLabel": "Mild Emotional Strain",
+  "severityBadge": "🟢 Mild",
+  "summary": "2-3 sentence empathetic, non-diagnostic summary using phrases like 'your responses suggest you may be experiencing...'",
+  "copingStrategies": [
+    { "icon": "emoji", "title": "Strategy title", "detail": "Practical, warm description 1-2 sentences" }
+  ],
+  "affirmation": "One warm encouraging affirmation sentence",
+  "professionalNote": "Gentle 1-sentence reminder about professional support if appropriate"
+}
+
+severity: "green" (mild), "yellow" (moderate), "red" (high risk)
+Provide exactly 4 coping strategies specifically relevant to this emotion and these answers.
+For red severity: include immediate grounding technique and support resources first.
+NEVER use diagnostic language. Always end with hope.`;
+
+  try {
+    const raw = await callGroq([
+      {role:"system",content:sys},
+      {role:"user",content:`Emotion: ${state.selectedEmotion.icon} ${state.selectedEmotion.label}\n\nAssessment Q&A:\n${qaText}`}
+    ]);
+    hideLoader();
+    let data;
+    try { data=JSON.parse(raw.replace(/```json|```/g,"").trim()); }
+    catch(e) { hideLoader(); botMsg("I had trouble generating your full report. Please try again."); return; }
+    state.assessmentData=data;
+    renderResultCard(data);
+    setProgress(100);
+    state.phase="result";
+  } catch(err) { hideLoader(); apiError(err); }
+}
+
+/* ════════════════════════════════════
+   RENDER RESULT CARD
+════════════════════════════════════ */
+function renderResultCard(d) {
+  divider("Your Emotional Wellness Report");
+
+  const copingHtml=(d.copingStrategies||[]).map(c=>`
+    <div class="coping-item">
+      <div class="coping-icon">${c.icon||"💡"}</div>
+      <div class="coping-text"><strong>${escHtml(c.title)}</strong>${escHtml(c.detail)}</div>
+    </div>`).join("");
+
+  const crisisHtml = d.severity==="red" ? `
+    <div class="crisis-alert">
+      <div class="ca-icon">🆘</div>
+      <div class="ca-text">Your responses suggest significant emotional distress. You don't have to face this alone — please reach out.
+        <span class="ca-num">📞 iCall (India): 9152987821</span>
+        <span class="ca-sub">Vandrevala Foundation: 1860-2662-345 (24/7)</span>
+        <span class="ca-sub">AASRA: 9820466627 · Emergency: 112</span>
+      </div>
+    </div>` : "";
+
+  const card=document.createElement("div"); card.className="msg-bot";
+  card.innerHTML=`
+    <div class="bot-avatar">MG</div>
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-emotion-icon">${state.selectedEmotion.icon}</div>
+        <div>
+          <div class="result-title">${escHtml(d.severityLabel||"Emotional Assessment")}</div>
+          <span class="severity-badge ${d.severity||'yellow'}">${escHtml(d.severityBadge||"Complete")}</span>
+        </div>
+      </div>
+
+      <div class="result-summary">${escHtml(d.summary||"")}</div>
+      ${crisisHtml}
+
+      <div class="sec-lbl">Personalised Coping Strategies</div>
+      <div class="coping-list">${copingHtml}</div>
+
+      ${d.affirmation?`<div style="background:var(--accent-lt);border:1px solid rgba(74,124,111,.2);border-radius:12px;padding:14px 16px;font-size:.88rem;color:var(--accent);font-weight:500;font-style:italic;margin-bottom:14px;">💛 "${escHtml(d.affirmation)}"</div>`:""}
+      ${d.professionalNote?`<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:.82rem;color:var(--muted);margin-bottom:14px;">🩺 ${escHtml(d.professionalNote)}</div>`:""}
+
+      <div style="background:var(--warn-bg);border:1px solid rgba(192,138,58,.2);border-radius:12px;padding:11px 14px;font-size:.78rem;color:var(--ink2);margin-bottom:16px;">
+        <strong style="color:var(--warn)">⚠️ Reminder:</strong> This assessment is for <strong>emotional support only</strong> and does not constitute a medical diagnosis. Please consult a qualified professional for clinical support.
+      </div>
+
+      <div class="result-actions">
+        <button class="ract-btn interact-btn" onclick="startInteractMode()">💬 Interact with Your Counsellor</button>
+        <button class="ract-btn outline" onclick="resetChat()">🔄 New Check-In</button>
+      </div>
+    </div>`;
+  thread().appendChild(card); scrollB();
+
+  setTimeout(()=>{
+    const tone = d.severity==="red"
+      ? "💙 I want you to know that reaching out for help is a sign of incredible strength."
+      : d.severity==="yellow"
+      ? "💛 You're doing really well by checking in with yourself today."
+      : "💚 It's wonderful that you're taking time to care for your emotional health.";
+    botMsg(`${tone}<br><br>When you're ready, click <strong>"Interact with Your Counsellor"</strong> to have an open, personal conversation with me. Share whatever is on your mind — I'll guide you at your pace, and we'll continue until <em>you</em> feel satisfied and ready to close.`);
+    scrollB();
+  },700);
+}
+
+/* ════════════════════════════════════
+   INTERACT / COUNSELLOR MODE
+════════════════════════════════════ */
+function startInteractMode() {
+  state.phase="interact";
+  state.counsellorHistory=[];
+
+  const qaCtx = state.answers.map((a,i)=>`${a.q} → ${a.a}`).join("; ");
+  const summaryCtx = state.assessmentData?.summary || "";
+
+  state._sysPrompt = `You are MindGuard AI, a warm, deeply empathetic, and skilled AI counsellor. You are having a supportive one-on-one counselling session with someone.
+
+Context about this person:
+- Selected emotion: ${state.selectedEmotion.icon} ${state.selectedEmotion.label}
+- Assessment responses: ${qaCtx}
+- Summary: ${summaryCtx}
+
+Your role as their counsellor:
+- Listen with deep empathy and validate their feelings before offering guidance
+- Speak directly and personally ("you", "your experience", "what you're feeling")
+- Offer practical coping techniques, reframing perspectives, and emotional validation
+- Gently challenge unhelpful thought patterns when appropriate
+- Ask one thoughtful follow-up question at the end of each response to invite them to go deeper
+- Keep responses warm, personal, and substantive (typically 4–8 sentences + a follow-up question)
+- NEVER diagnose, NEVER prescribe medication, NEVER give medical advice
+- If the person seems in acute distress or mentions self-harm, compassionately direct to professional help
+- Use accessible, everyday language — not clinical jargon
+- Remember: this conversation continues until the person clicks "Satisfied ✓" — honour their pace`;
+
+  divider("Counsellor Session");
+  botMsg(`<strong>💬 Your counsellor session has begun.</strong><br><br>
+    This is your safe, private space. Please share what's been on your mind — in your own words, how are you truly feeling right now? What has been weighing on you?<br><br>
+    <em class="hint">Type freely below. After each response, you'll see a "Satisfied ✓" button — click it when you feel heard and ready to close. Otherwise, just keep sharing.</em>`);
+
+  document.getElementById("chatInputArea").style.display="block";
+  const ta=document.getElementById("userTextarea");
+  ta.placeholder="Share what's on your mind, in your own words…";
+  setTimeout(()=>ta.focus(),300);
+  setProgress(100);
+}
+
+async function handleCounsellorSend() {
+  if (state.phase!=="interact") return;
+  const ta=document.getElementById("userTextarea");
+  const text=ta.value.trim();
+  if (!text) return;
+
+  if (isCrisis(text)) {
+    userMsg(text); ta.value=""; ta.style.height="auto";
+    showCrisisResponse(); return;
+  }
+
+  userMsg(text); ta.value=""; ta.style.height="auto";
+  document.getElementById("sendBtn").disabled=true;
+  typingOn();
+
+  state.counsellorHistory.push({role:"user",content:text});
+  const messages=[{role:"system",content:state._sysPrompt},...state.counsellorHistory];
+
+  try {
+    const raw=await callGroq(messages,900);
+    typingOff();
+    state.counsellorHistory.push({role:"assistant",content:raw});
+    renderCounsellorResponse(raw);
+  } catch(err) { typingOff(); apiError(err); }
+
+  document.getElementById("sendBtn").disabled=false;
+}
+
+function renderCounsellorResponse(text) {
+  // Split on double newlines for paragraph formatting
+  const formatted = text.split(/\n\n+/)
+    .map(p=>p.trim()).filter(Boolean)
+    .map(p=>`<p>${escHtml(p)}</p>`).join("") || `<p>${escHtml(text)}</p>`;
+
+  const rid=`cr_${Date.now()}`;
+  const w=document.createElement("div"); w.className="msg-bot";
+  w.innerHTML=`<div class="bot-avatar">MG</div>
+    <div>
+      <div class="counsellor-response">
+        ${formatted}
+        <div class="satisfied-row">
+          <button class="satisfied-btn" id="${rid}" onclick="markSatisfied('${rid}',this)">✅ Satisfied</button>
+          <span class="satisfied-label">Feeling heard? Click to close the session — or keep sharing below.</span>
+        </div>
+      </div>
+    </div>`;
+  thread().appendChild(w); scrollB();
+}
+
+function markSatisfied(rid, btn) {
+  btn.disabled=true;
+  btn.textContent="✅ Session Complete";
+  btn.style.cssText="background:var(--accent);color:white;border-color:var(--accent);cursor:default;opacity:1";
+
+  document.getElementById("chatInputArea").style.display="none";
+  state.phase="done";
+
+  divider("Session Closed");
+  setTimeout(()=>{
+    const affirmation = state.assessmentData?.affirmation
+      ? `<br><br><em style="color:var(--accent);display:block;padding:10px 14px;background:var(--accent-lt);border-radius:10px;font-style:italic">💛 "${escHtml(state.assessmentData.affirmation)}"</em>`
+      : "";
+    botMsg(`<strong>💚 I'm really glad we talked today.</strong><br><br>
+      You showed real courage in opening up and exploring your feelings. Be gentle with yourself as you move forward — healing isn't linear, and every step counts.
+      ${affirmation}<br>
+      If you'd like to talk again anytime, simply start a new check-in. Take good care of yourself 💛<br><br>
+      <button class="ract-btn" style="margin-top:8px" onclick="resetChat()">🔄 Start New Check-In</button>`);
+    scrollB();
+  },400);
+}
+
+/* ════════════════════════════════════
+   CRISIS RESPONSE
+════════════════════════════════════ */
+function showCrisisResponse() {
+  const w=document.createElement("div"); w.className="msg-bot";
+  w.innerHTML=`<div class="bot-avatar">MG</div>
+    <div class="bot-bubble">
+      <div class="crisis-alert">
+        <div class="ca-icon">💙</div>
+        <div class="ca-text">
+          I'm really glad you shared that with me. What you're feeling matters deeply, and you don't have to face this alone. Please reach out to someone who can help right now:
+          <span class="ca-num">📞 iCall: 9152987821</span>
+          <span class="ca-sub">Vandrevala Foundation: 1860-2662-345 (24/7)</span>
+          <span class="ca-sub">AASRA: 9820466627 · Emergency: 112</span>
+        </div>
+      </div>
+      You are valued. You matter deeply. Help is available and you deserve to receive it. 💛
+    </div>`;
+  thread().appendChild(w); scrollB();
+}
+
+/* ════════════════════════════════════
+   ERROR / RESET
+════════════════════════════════════ */
+function apiError(err) {
+  if(err.message==="NO_KEY") {
+    botMsg(`<strong>⚠️ Groq API key not set.</strong><br><br>
+      Open this file in a text editor and find:<br>
+      <code style="background:var(--bg2);padding:2px 8px;border-radius:6px">const GROQ_API_KEY = "";</code><br><br>
+      Paste your free key from <a href="https://console.groq.com" target="_blank" style="color:var(--accent);font-weight:600">console.groq.com</a> and save.`);
+  } else {
+    botMsg(`<strong>⚠️ Something went wrong:</strong> ${escHtml(err.message)}<br>Please try again in a moment.`);
+  }
+}
+
+function resetChat() {
+  Object.assign(state,{phase:"emotion",selectedEmotion:null,answers:[],totalQuestionsAsked:0,assessmentData:null,counsellorHistory:[],_curQ:null,_sysPrompt:null});
+  thread().innerHTML="";
+  setProgress(0);
+  document.getElementById("chatInputArea").style.display="none";
+  setTimeout(startChat,300);
+}
+</script>
+</body>
+</html>

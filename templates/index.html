@@ -1,0 +1,2707 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VitaGuard AI — Preventive Health Intelligence</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════
+   DESIGN SYSTEM
+══════════════════════════════════════ */
+    :root {
+      --bg: #f5f0e8;
+      --bg2: #ede8dc;
+      --white: #fdfaf5;
+      --ink: #1a1612;
+      --ink2: #3d3530;
+      --muted: #8c7e72;
+      --border: #d5cdc0;
+      --accent: #1a7a5e;
+      --accent-lt: #e8f5f0;
+      --warn: #d4870a;
+      --danger: #c0392b;
+      --shadow: 0 4px 24px rgba(26, 22, 18, .10);
+      --shadow-lg: 0 12px 48px rgba(26, 22, 18, .15);
+      --font-h: 'Playfair Display', Georgia, serif;
+      --font-b: 'Outfit', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-b);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: .5;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* ══════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════ */
+    #navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(245, 240, 232, .95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      box-shadow: 0 2px 16px rgba(26, 22, 18, .06);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-logo {
+      font-family: var(--font-h);
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .nav-logo .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      animation: dot-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes dot-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+
+      50% {
+        transform: scale(1.4);
+        opacity: .7
+      }
+    }
+
+    /* Feature tabs inside nav */
+    .nav-features {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .nav-feature-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-b);
+      font-size: .83rem;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 7px 14px;
+      border-radius: 50px;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .nav-feature-btn .feat-icon {
+      font-size: .95rem;
+    }
+
+    .nav-feature-btn:hover {
+      color: var(--ink);
+      background: var(--bg2);
+    }
+
+    .nav-feature-btn.active {
+      color: var(--accent);
+      background: var(--accent-lt);
+      font-weight: 600;
+    }
+
+    /* Right side nav */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    .nav-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      color: var(--muted);
+      transition: all .2s;
+      position: relative;
+    }
+
+    .nav-icon-btn:hover {
+      background: var(--bg2);
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--danger);
+      border: 2px solid var(--white);
+    }
+
+    .nav-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #2ea87a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-h);
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--white);
+      cursor: pointer;
+      transition: all .2s;
+      border: 2px solid transparent;
+    }
+
+    .nav-avatar:hover {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .nav-text-btn {
+      background: none;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      font-family: var(--font-b);
+      font-size: .83rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 7px 16px;
+      border-radius: 50px;
+      transition: all .2s;
+    }
+
+    .nav-text-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .nav-cta-btn {
+      background: var(--ink);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 8px 20px;
+      font-family: var(--font-b);
+      font-size: .83rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .nav-cta-btn:hover {
+      background: var(--accent);
+    }
+
+    /* Hamburger (mobile) */
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 5px;
+      padding: 4px;
+      margin-left: 8px;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--ink);
+      border-radius: 2px;
+      transition: all .3s;
+    }
+
+    /* Mobile menu */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 16px 20px;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mobile-menu.open {
+      display: flex;
+    }
+
+    .mobile-menu-feat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-b);
+      font-size: .93rem;
+      font-weight: 500;
+      color: var(--ink2);
+      padding: 11px 14px;
+      border-radius: 12px;
+      transition: all .2s;
+      text-align: left;
+      width: 100%;
+    }
+
+    .mobile-menu-feat .feat-icon {
+      font-size: 1.1rem;
+    }
+
+    .mobile-menu-feat:hover,
+    .mobile-menu-feat.active {
+      background: var(--accent-lt);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .mobile-menu-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 6px 0;
+    }
+
+    .mobile-menu-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mobile-menu-row button {
+      flex: 1;
+    }
+
+    /* ══════════════════════════════════════
+   PAGE SYSTEM
+══════════════════════════════════════ */
+    .page {
+      display: none;
+      animation: pg-in .3s ease;
+      min-height: calc(100vh - 64px);
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes pg-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* Feature iframe pages */
+    .feature-page {
+      padding-top: 64px;
+      /* offset for fixed navbar */
+      min-height: 100vh;
+    }
+
+    .feature-iframe {
+      width: 100%;
+      border: none;
+      display: block;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* ══════════════════════════════════════
+   HOME PAGE
+══════════════════════════════════════ */
+    #page-home {
+      padding-top: 64px;
+    }
+
+    /* HERO */
+    .hero {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 90px 40px 70px;
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-lt);
+      color: var(--accent);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 50px;
+      border: 1px solid rgba(26, 122, 94, .2);
+      margin-bottom: 22px;
+    }
+
+    .hero-eyebrow::before {
+      content: '●';
+      font-size: .5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-h);
+      font-size: clamp(2.4rem, 4vw, 4rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 .hl {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.75;
+      max-width: 480px;
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-b);
+      font-weight: 600;
+      font-size: .93rem;
+      padding: 12px 26px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all .22s;
+      text-decoration: none;
+    }
+
+    .btn-dark {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .btn-dark:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(26, 122, 94, .3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--ink);
+      background: var(--bg2);
+    }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+    }
+
+    .hero-card {
+      background: var(--white);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(26, 122, 94, .1) 0%, transparent 70%);
+    }
+
+    .hc-label {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .hc-score {
+      font-family: var(--font-h);
+      font-size: 4.5rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .hc-sub {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .hc-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hc-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .hc-bar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: .78rem;
+    }
+
+    .hc-bar-meta span:first-child {
+      color: var(--ink2);
+      font-weight: 500;
+    }
+
+    .hc-bar-meta span:last-child {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .hc-bar-bg {
+      height: 6px;
+      background: var(--bg2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .hc-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+      transition: width 1.2s cubic-bezier(.4, 0, .2, 1);
+      width: 0;
+    }
+
+    .hc-badge {
+      display: inline-block;
+      margin-top: 20px;
+      background: #e8f5f0;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: .82rem;
+      padding: 7px 16px;
+      border-radius: 50px;
+      border: 1px solid rgba(26, 122, 94, .2);
+    }
+
+    /* Stats strip */
+    .stats-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      padding: 28px 40px;
+    }
+
+    .stats-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: var(--font-h);
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Feature cards grid */
+    .features-section {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 70px 40px;
+    }
+
+    .features-header {
+      margin-bottom: 44px;
+    }
+
+    .features-header .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .features-header h2 {
+      font-family: var(--font-h);
+      font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: -.5px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* Last 2 cards (4th and 5th) centered in bottom row */
+    .features-grid .feature-card:nth-child(4),
+    .features-grid .feature-card:nth-child(5) {
+      grid-column: span 1;
+    }
+
+    .features-grid-bottom {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .25s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(26, 122, 94, .3);
+    }
+
+    .feature-card:hover::after {
+      transform: scaleX(1);
+    }
+
+    .fc-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .fc-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .fc-icon.green {
+      background: var(--accent-lt);
+    }
+
+    .fc-icon.amber {
+      background: #fef5e4;
+    }
+
+    .fc-icon.red {
+      background: #fdecea;
+    }
+
+    .fc-icon.blue {
+      background: #e8eef5;
+    }
+
+    .fc-badge {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+
+    .fc-badge.green {
+      background: var(--accent-lt);
+      color: var(--accent);
+    }
+
+    .fc-badge.amber {
+      background: #fef5e4;
+      color: var(--warn);
+    }
+
+    .fc-badge.red {
+      background: #fdecea;
+      color: var(--danger);
+    }
+
+    .fc-badge.blue {
+      background: #e8eef5;
+      color: var(--blue, #4a6fa5);
+    }
+
+    .fc-title {
+      font-family: var(--font-h);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .fc-desc {
+      font-size: .86rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 18px;
+    }
+
+    .fc-tags {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .fc-tag {
+      font-size: .73rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 50px;
+      background: var(--bg2);
+      color: var(--ink2);
+      border: 1px solid var(--border);
+    }
+
+    .fc-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-lt);
+      border: 1px solid rgba(26, 122, 94, .2);
+      border-radius: 50px;
+      padding: 8px 18px;
+      transition: all .2s;
+    }
+
+    .fc-link:hover {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    .fc-link .arrow {
+      transition: transform .2s;
+    }
+
+    .fc-link:hover .arrow {
+      transform: translateX(3px);
+    }
+
+    /* How it works */
+    .how-section {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 70px 40px;
+    }
+
+    .how-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .how-inner .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .how-inner h2 {
+      font-family: var(--font-h);
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 48px;
+      letter-spacing: -.5px;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+
+    .how-item {
+      position: relative;
+    }
+
+    .how-num {
+      font-family: var(--font-h);
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--bg2);
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+
+    .how-item h3 {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .how-item p {
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.65;
+    }
+
+    /* Dashboard preview */
+    .dashboard-section {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 70px 40px;
+    }
+
+    .dashboard-header {
+      margin-bottom: 36px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .dashboard-header h2 {
+      font-family: var(--font-h);
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -.5px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .dash-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all .2s;
+    }
+
+    .dash-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .dash-card-label {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .dash-card-val {
+      font-family: var(--font-h);
+      font-size: 1.8rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .dash-card-sub {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    .dash-card-trend {
+      font-size: .78rem;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .trend-up {
+      color: #c0392b;
+    }
+
+    .trend-dn {
+      color: var(--accent);
+    }
+
+    .dash-wide {
+      grid-column: span 2;
+    }
+
+    .dash-activity {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .da-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .da-title {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--ink2);
+    }
+
+    .da-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .activity-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 60px;
+    }
+
+    .a-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: var(--bg2);
+      transition: height .5s ease;
+      min-height: 4px;
+    }
+
+    .a-bar.filled {
+      background: linear-gradient(180deg, var(--accent), #2ea87a);
+    }
+
+    /* Login modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 22, 18, .45);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 420px;
+      width: calc(100% - 40px);
+      box-shadow: var(--shadow-lg);
+      animation: modal-in .3s cubic-bezier(.4, 0, .2, 1);
+      position: relative;
+    }
+
+    @keyframes modal-in {
+      from {
+        opacity: 0;
+        transform: scale(.95)translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)translateY(0)
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      background: var(--bg2);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--muted);
+      transition: all .2s;
+    }
+
+    .modal-close:hover {
+      background: var(--border);
+      color: var(--ink);
+    }
+
+    .modal-logo {
+      font-family: var(--font-h);
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .modal-sub {
+      color: var(--muted);
+      font-size: .85rem;
+      margin-bottom: 28px;
+    }
+
+    .modal-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg2);
+      border-radius: 50px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+
+    .modal-tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 50px;
+      background: none;
+      font-family: var(--font-b);
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .modal-tab.active {
+      background: var(--white);
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(26, 22, 18, .08);
+    }
+
+    .form-field {
+      margin-bottom: 16px;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .form-field input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-family: var(--font-b);
+      font-size: .93rem;
+      color: var(--ink);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .form-field input:focus {
+      border-color: var(--accent);
+      background: var(--white);
+    }
+
+    .form-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--ink);
+      color: var(--white);
+      font-family: var(--font-b);
+      font-weight: 700;
+      font-size: .93rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 4px;
+    }
+
+    .form-submit:hover {
+      background: var(--accent);
+    }
+
+    .form-divider {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--muted);
+      margin: 16px 0;
+      position: relative;
+    }
+
+    .form-divider::before,
+    .form-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .form-divider::before {
+      left: 0;
+    }
+
+    .form-divider::after {
+      right: 0;
+    }
+
+    .social-btn {
+      width: 100%;
+      padding: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      border-radius: 12px;
+      font-family: var(--font-b);
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--ink2);
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .social-btn:hover {
+      border-color: var(--ink);
+      background: var(--bg2);
+    }
+
+    .form-footer {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+
+    .form-footer a {
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* Dropdown menu */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      min-width: 200px;
+      padding: 8px;
+      z-index: 100;
+      animation: modal-in .2s ease;
+    }
+
+    .dropdown-menu.open {
+      display: block;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: .88rem;
+      color: var(--ink2);
+      transition: all .2s;
+      background: none;
+      border: none;
+      width: 100%;
+      font-family: var(--font-b);
+      text-align: left;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg2);
+      color: var(--ink);
+    }
+
+    .dropdown-item.danger {
+      color: var(--danger);
+    }
+
+    .dropdown-item.danger:hover {
+      background: #fdecea;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* Footer */
+    .home-footer {
+      background: var(--ink);
+      color: var(--white);
+      padding: 50px 40px 30px;
+    }
+
+    .footer-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-logo {
+      font-family: var(--font-h);
+      font-size: 1.3rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .footer-logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .footer-tagline {
+      font-size: .85rem;
+      color: rgba(255, 255, 255, .5);
+      line-height: 1.6;
+    }
+
+    .footer-col h4 {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255, 255, 255, .4);
+      margin-bottom: 14px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .footer-col ul li a,
+    .footer-col ul li button {
+      font-size: .86rem;
+      color: rgba(255, 255, 255, .6);
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-b);
+      padding: 0;
+      transition: color .2s;
+      text-align: left;
+    }
+
+    .footer-col ul li a:hover,
+    .footer-col ul li button:hover {
+      color: var(--white);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, .1);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-disc {
+      font-size: .78rem;
+      color: rgba(255, 255, 255, .35);
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .footer-copy {
+      font-size: .75rem;
+      color: rgba(255, 255, 255, .25);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--ink);
+      color: var(--white);
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-size: .85rem;
+      font-weight: 500;
+      z-index: 3000;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+    @media(max-width:1024px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        display: none;
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+    }
+
+    @media(max-width:768px) {
+      #navbar {
+        padding: 0 20px;
+      }
+
+      .nav-features {
+        display: none;
+      }
+
+      .nav-divider {
+        display: none;
+      }
+
+      .nav-hamburger {
+        display: flex;
+      }
+
+      .nav-text-btn {
+        display: none;
+      }
+
+      .hero {
+        padding: 60px 20px 50px;
+      }
+
+      .stats-strip {
+        padding: 20px;
+      }
+
+      .stats-inner {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .features-section,
+      .how-section,
+      .dashboard-section {
+        padding: 50px 20px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .how-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .home-footer {
+        padding: 40px 20px 24px;
+      }
+
+      .footer-top {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+
+    @media(max-width:480px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-inner {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+    }
+
+    /* ══════════════════════════════════════
+   CHATBOT WIDGET
+══════════════════════════════════════ */
+    .chatbot-toggle {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 1500;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #2ea87a);
+      color: var(--white);
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(26, 122, 94, .35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .25s;
+    }
+
+    .chatbot-toggle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 32px rgba(26, 122, 94, .45);
+    }
+
+    .chatbot-toggle.open {
+      transform: rotate(90deg) scale(1.08);
+    }
+
+    .chatbot-window {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      z-index: 1500;
+      width: 380px;
+      max-height: 520px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      transform: translateY(16px) scale(.95);
+      opacity: 0;
+      pointer-events: none;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      overflow: hidden;
+    }
+
+    .chatbot-window.open {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(26, 122, 94, .06), rgba(46, 168, 122, .04));
+    }
+
+    .cb-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cb-header-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #2ea87a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: var(--white);
+    }
+
+    .cb-header-info h4 {
+      font-family: var(--font-h);
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .cb-header-info span {
+      font-size: .72rem;
+      color: var(--accent);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cb-header-info span::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: dot-pulse 2s infinite;
+    }
+
+    .cb-close {
+      background: var(--bg2);
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: .85rem;
+      color: var(--muted);
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cb-close:hover {
+      background: var(--border);
+      color: var(--ink);
+    }
+
+    .cb-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 340px;
+      min-height: 200px;
+    }
+
+    .cb-msg {
+      max-width: 85%;
+      padding: 10px 14px;
+      font-size: .88rem;
+      line-height: 1.55;
+      animation: msg-slide-in .3s ease;
+    }
+
+    @keyframes msg-slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cb-msg.bot {
+      align-self: flex-start;
+      background: var(--bg2);
+      color: var(--ink2);
+      border-radius: 18px 18px 18px 4px;
+    }
+
+    .cb-msg.user {
+      align-self: flex-end;
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 18px 18px 4px 18px;
+    }
+
+    .cb-msg.bot strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .cb-msg.nav-card {
+      background: linear-gradient(135deg, rgba(26, 122, 94, .08), rgba(46, 168, 122, .04));
+      border: 1px solid rgba(26, 122, 94, .15);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .cb-msg.nav-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(26, 122, 94, .15);
+    }
+
+    .cb-nav-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .cb-nav-name {
+      font-family: var(--font-h);
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+
+    .cb-nav-hint {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    .cb-typing {
+      align-self: flex-start;
+      display: flex;
+      gap: 4px;
+      padding: 10px 16px;
+      background: var(--bg2);
+      border-radius: 18px 18px 18px 4px;
+    }
+
+    .cb-typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: cb-bounce .9s infinite;
+    }
+
+    .cb-typing span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .cb-typing span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes cb-bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: translateY(0)
+      }
+
+      40% {
+        transform: translateY(-6px)
+      }
+    }
+
+    .cb-input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .cb-input {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 16px;
+      font-family: var(--font-b);
+      font-size: .88rem;
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .cb-input:focus {
+      border-color: var(--accent);
+    }
+
+    .cb-input::placeholder {
+      color: var(--muted);
+    }
+
+    .cb-send {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: var(--ink);
+      color: var(--white);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .cb-send:hover {
+      background: var(--accent);
+    }
+
+    .cb-send:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    @media(max-width:480px) {
+      .chatbot-window {
+        width: calc(100% - 24px);
+        right: 12px;
+        bottom: 90px;
+      }
+
+      .chatbot-toggle {
+        bottom: 18px;
+        right: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══ TOAST ══ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ LOGIN MODAL ══ -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLogin()">✕</button>
+      <div class="modal-logo">VitaGuard <span class="dot"></span> AI</div>
+      <div class="modal-sub">Sign in to access your health dashboard and reports</div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="modal-tab" id="tabSignup" onclick="switchAuthTab('signup')">Create Account</button>
+      </div>
+      <div id="loginForm">
+        <div class="form-field">
+          <label>Email Address</label>
+          <input type="email" placeholder="you@example.com" id="loginEmail" />
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" placeholder="••••••••" id="loginPass" />
+        </div>
+        <button class="form-submit" onclick="handleLogin()">Sign In to Dashboard</button>
+        <div class="form-divider">or continue with</div>
+        <button class="social-btn" onclick="showToast('Google sign-in coming soon!')">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4" />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853" />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              fill="#FBBC05" />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335" />
+          </svg>
+          Continue with Google
+        </button>
+      </div>
+      <div id="signupForm" style="display:none">
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" placeholder="Your name" id="signupName" />
+        </div>
+        <div class="form-field">
+          <label>Email Address</label>
+          <input type="email" placeholder="you@example.com" id="signupEmail" />
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" placeholder="Create a password" id="signupPass" />
+        </div>
+        <button class="form-submit" onclick="handleSignup()">Create My Account</button>
+      </div>
+      <div class="form-footer">
+        By continuing you agree to our <a>Terms of Service</a> and <a>Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ NAVBAR ══ -->
+  <nav id="navbar">
+    <div class="nav-left">
+      <div class="nav-logo" onclick="showPage('home')">
+        VitaGuard <span class="dot"></span> AI
+      </div>
+      <div class="nav-features">
+        <button class="nav-feature-btn" id="nav-symptom" onclick="showPage('symptom')">
+          <span class="feat-icon">🩺</span> Symptom Analyzer
+        </button>
+        <button class="nav-feature-btn" id="nav-firstaid" onclick="showPage('firstaid')">
+          <span class="feat-icon">🚑</span> First Aid
+        </button>
+        <button class="nav-feature-btn" id="nav-mindguard" onclick="showPage('mindguard')">
+          <span class="feat-icon">🧠</span> MindGuard
+        </button>
+        <button class="nav-feature-btn" id="nav-risk" onclick="showPage('risk')">
+          <span class="feat-icon">📊</span> Risk Analyzer
+        </button>
+        <button class="nav-feature-btn" id="nav-skin" onclick="showPage('skin')">
+          <span class="feat-icon">🩸</span> Skin Detection
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <button class="nav-text-btn" onclick="openLogin()">Sign In</button>
+      <button class="nav-cta-btn" onclick="openLogin()">Get Started</button>
+      <div class="nav-divider"></div>
+      <button class="nav-icon-btn" onclick="showToast('No new notifications')" title="Notifications">
+        🔔
+        <span class="notif-dot"></span>
+      </button>
+      <div class="dropdown">
+        <div class="nav-avatar" id="navAvatar" onclick="toggleDropdown()">VG</div>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button class="dropdown-item" onclick="openLogin();closeDropdown()">👤 My Dashboard</button>
+          <button class="dropdown-item" onclick="openLogin();closeDropdown()">⚙️ Settings</button>
+          <button class="dropdown-item" onclick="showToast('Coming soon!');closeDropdown()">📄 My Reports</button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" onclick="showToast('Coming soon!');closeDropdown()">❓ Help & Support</button>
+          <button class="dropdown-item danger" onclick="showToast('Signed out');closeDropdown()">🚪 Sign Out</button>
+        </div>
+      </div>
+      <button class="nav-hamburger" id="hamburger" onclick="toggleMobile()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="mobile-menu-feat" id="mob-symptom" onclick="showPage('symptom');closeMobile()">
+      <span class="feat-icon">🩺</span> Symptom Analyzer
+    </button>
+    <button class="mobile-menu-feat" id="mob-firstaid" onclick="showPage('firstaid');closeMobile()">
+      <span class="feat-icon">🚑</span> First Aid Assistant
+    </button>
+    <button class="mobile-menu-feat" id="mob-mindguard" onclick="showPage('mindguard');closeMobile()">
+      <span class="feat-icon">🧠</span> MindGuard AI
+    </button>
+    <button class="mobile-menu-feat" id="mob-risk" onclick="showPage('risk');closeMobile()">
+      <span class="feat-icon">📊</span> Risk Analyzer
+    </button>
+    <div class="mobile-menu-divider"></div>
+    <div class="mobile-menu-row">
+      <button class="mobile-menu-feat" onclick="openLogin();closeMobile()"
+        style="background:var(--accent-lt);color:var(--accent)">Sign In</button>
+      <button class="mobile-menu-feat" onclick="openLogin();closeMobile()"
+        style="background:var(--ink);color:var(--white);border-radius:12px">Get Started</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+     HOME PAGE
+══════════════════════════════════════ -->
+  <div class="page active" id="page-home">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-left">
+        <div class="hero-eyebrow">AI-Powered Preventive Health Intelligence</div>
+        <h1>Your Health,<br><span class="hl">Predicted</span> Before<br>It's a Problem.</h1>
+        <p class="hero-sub">VitaGuard AI combines symptom analysis, risk prediction, first aid guidance, and mental
+          wellness support into one unified health intelligence platform.</p>
+        <div class="hero-actions">
+          <button class="btn btn-dark" onclick="showPage('risk')">
+            Analyze My Health Risk <span>→</span>
+          </button>
+          <button class="btn btn-outline" onclick="showPage('symptom')">
+            Check Symptoms
+          </button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hc-label">Overall Health Score</div>
+          <div class="hc-score">74</div>
+          <div class="hc-sub">Based on latest assessment · Updated today</div>
+          <div class="hc-bars">
+            <div class="hc-bar-row">
+              <div class="hc-bar-meta"><span>Cardiovascular</span><span id="b1p">82%</span></div>
+              <div class="hc-bar-bg">
+                <div class="hc-bar-fill" id="b1" style="width:82%"></div>
+              </div>
+            </div>
+            <div class="hc-bar-row">
+              <div class="hc-bar-meta"><span>Mental Wellness</span><span id="b2p">68%</span></div>
+              <div class="hc-bar-bg">
+                <div class="hc-bar-fill" id="b2" style="width:68%;background:var(--warn)"></div>
+              </div>
+            </div>
+            <div class="hc-bar-row">
+              <div class="hc-bar-meta"><span>Metabolic Health</span><span id="b3p">71%</span></div>
+              <div class="hc-bar-bg">
+                <div class="hc-bar-fill" id="b3" style="width:71%"></div>
+              </div>
+            </div>
+            <div class="hc-bar-row">
+              <div class="hc-bar-meta"><span>Lifestyle Score</span><span id="b4p">76%</span></div>
+              <div class="hc-bar-bg">
+                <div class="hc-bar-fill" id="b4" style="width:76%"></div>
+              </div>
+            </div>
+          </div>
+          <span class="hc-badge">🟢 Low-Moderate Risk Profile</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats-strip">
+      <div class="stats-inner">
+        <div class="stat-item">
+          <div class="stat-num" id="sn1">0</div>
+          <div class="stat-label">AI Assessments Completed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="sn2">0</div>
+          <div class="stat-label">Health Modules Available</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="sn3">0</div>
+          <div class="stat-label">First Aid Scenarios Covered</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="sn4">0</div>
+          <div class="stat-label">Accuracy on Symptom Analysis</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="features-section">
+      <div class="features-header">
+        <span class="sec-label">Platform Modules</span>
+        <h2>Five Tools, One Platform</h2>
+      </div>
+      <!-- Top row: 3 cards -->
+      <div class="features-grid">
+
+        <div class="feature-card" onclick="showPage('symptom')">
+          <div class="fc-top">
+            <div class="fc-icon green">🩺</div>
+            <span class="fc-badge green">AI-Powered</span>
+          </div>
+          <div class="fc-title">Symptom Analyzer</div>
+          <div class="fc-desc">Describe your symptoms in natural language. Our AI analyzes them through structured
+            follow-up questions and delivers a severity-classified assessment with actionable guidance.</div>
+          <div class="fc-tags">
+            <span class="fc-tag">Natural Language</span>
+            <span class="fc-tag">Severity Scoring</span>
+            <span class="fc-tag">Groq AI</span>
+          </div>
+          <span class="fc-link">Launch Analyzer <span class="arrow">→</span></span>
+        </div>
+
+        <div class="feature-card" onclick="showPage('firstaid')">
+          <div class="fc-top">
+            <div class="fc-icon red">🚑</div>
+            <span class="fc-badge red">Emergency</span>
+          </div>
+          <div class="fc-title">First Aid Assistant</div>
+          <div class="fc-desc">A guided decision-tree triage assistant for 9 emergency scenarios. Classifies severity
+            into Minor, Moderate, or Severe — and delivers instant step-by-step first aid instructions.</div>
+          <div class="fc-tags">
+            <span class="fc-tag">Decision Tree</span>
+            <span class="fc-tag">9 Scenarios</span>
+            <span class="fc-tag">Rule-Based</span>
+          </div>
+          <span class="fc-link">Open First Aid <span class="arrow">→</span></span>
+        </div>
+
+        <div class="feature-card" onclick="showPage('mindguard')">
+          <div class="fc-top">
+            <div class="fc-icon blue">🧠</div>
+            <span class="fc-badge" style="background:#e8eef5;color:#4a6fa5">Wellness</span>
+          </div>
+          <div class="fc-title">MindGuard AI</div>
+          <div class="fc-desc">An empathetic emotional wellness companion. Complete a guided check-in, track your mood
+            over time, and access breathing exercises and cognitive reframing tools.</div>
+          <div class="fc-tags">
+            <span class="fc-tag">Mood Tracking</span>
+            <span class="fc-tag">Crisis Detection</span>
+            <span class="fc-tag">Breathing Tool</span>
+          </div>
+          <span class="fc-link">Start Check-In <span class="arrow">→</span></span>
+        </div>
+
+      </div>
+
+      <!-- Bottom row: 2 cards centered, each taking 50% width -->
+      <div class="features-grid-bottom">
+
+        <div class="feature-card" onclick="showPage('risk')">
+          <div class="fc-top">
+            <div class="fc-icon amber">📊</div>
+            <span class="fc-badge amber">Predictive</span>
+          </div>
+          <div class="fc-title">Health Risk Analyzer</div>
+          <div class="fc-desc">Input your health metrics and lifestyle data to get a comprehensive AI-generated health
+            risk score with personalized recommendations for prevention and long-term wellness.</div>
+          <div class="fc-tags">
+            <span class="fc-tag">Risk Scoring</span>
+            <span class="fc-tag">Lifestyle Factors</span>
+            <span class="fc-tag">Prevention Tips</span>
+          </div>
+          <span class="fc-link">Analyze Risk <span class="arrow">→</span></span>
+        </div>
+
+        <div class="feature-card" onclick="showPage('skin')">
+          <div class="fc-top">
+            <div class="fc-icon" style="background:#f3e8ff">🔬</div>
+            <span class="fc-badge" style="background:#f3e8ff;color:#7c3aed">Vision AI</span>
+          </div>
+          <div class="fc-title">Skin Detection</div>
+          <div class="fc-desc">Upload a photo of a skin concern and let our AI model analyze it for common conditions
+            such as rashes, acne, moles, and potential dermatological risk indicators.</div>
+          <div class="fc-tags">
+            <span class="fc-tag">Image Analysis</span>
+            <span class="fc-tag">Skin Conditions</span>
+            <span class="fc-tag">Early Detection</span>
+          </div>
+          <span class="fc-link">Scan Skin <span class="arrow">→</span></span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section">
+      <div class="how-inner">
+        <div class="sec-label">How It Works</div>
+        <h2>From Check-In to Clarity in Minutes</h2>
+        <div class="how-grid">
+          <div class="how-item">
+            <div class="how-num">01</div>
+            <h3>Describe or Select</h3>
+            <p>Choose a health module and describe your symptoms, emotional state, or input your health metrics. All
+              modules are guided and require no medical knowledge.</p>
+          </div>
+          <div class="how-item">
+            <div class="how-num">02</div>
+            <h3>AI Analysis</h3>
+            <p>Groq AI (powered by Llama 3.3 70B) or built-in decision tree logic analyzes your inputs and classifies
+              severity using structured scoring algorithms.</p>
+          </div>
+          <div class="how-item">
+            <div class="how-num">03</div>
+            <h3>Actionable Guidance</h3>
+            <p>Receive personalized recommendations, step-by-step first aid instructions, or coping strategies — all
+              written in simple, clear, actionable language.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD PREVIEW -->
+    <section class="dashboard-section">
+      <div class="dashboard-header">
+        <div>
+          <div
+            style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:8px">
+            Health Dashboard</div>
+          <h2>Your Wellness at a Glance</h2>
+        </div>
+        <button class="btn btn-outline" onclick="openLogin()">View Full Dashboard →</button>
+      </div>
+      <div class="dashboard-grid">
+        <div class="dash-card">
+          <div class="dash-card-label">Overall Risk Score</div>
+          <div class="dash-card-val" style="color:var(--accent)">74<span
+              style="font-size:1rem;color:var(--muted);font-family:var(--font-b)">/100</span></div>
+          <div class="dash-card-sub">Low-Moderate</div>
+          <div class="dash-card-trend trend-dn">↓ 3pts this week</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">Last Check-In</div>
+          <div class="dash-card-val">Today</div>
+          <div class="dash-card-sub">Symptom Analyzer</div>
+          <div class="dash-card-trend" style="color:var(--muted)">2 sessions this week</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">Mood Average</div>
+          <div class="dash-card-val" style="color:var(--warn)">6.4<span
+              style="font-size:1rem;color:var(--muted);font-family:var(--font-b)">/10</span></div>
+          <div class="dash-card-sub">Last 7 days</div>
+          <div class="dash-card-trend trend-dn">↑ +0.8 vs last week</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">Assessments Done</div>
+          <div class="dash-card-val">12</div>
+          <div class="dash-card-sub">All modules</div>
+          <div class="dash-card-trend trend-dn">↑ 4 this week</div>
+        </div>
+      </div>
+      <div class="dashboard-grid" style="margin-top:0">
+        <div class="dash-activity dash-wide">
+          <div class="da-header">
+            <div class="da-title">Weekly Activity</div>
+            <div class="da-dots" style="font-size:.75rem;color:var(--muted)">Mon–Sun</div>
+          </div>
+          <div class="activity-bars" id="activityBars"></div>
+        </div>
+        <div class="dash-card dash-wide" style="display:flex;align-items:center;justify-content:space-between;gap:20px">
+          <div>
+            <div class="dash-card-label" style="margin-bottom:10px">Get Your Full Report</div>
+            <div style="font-size:.88rem;color:var(--ink2);line-height:1.6;margin-bottom:14px">Sign in to unlock your
+              complete health history, trend analysis, and personalised recommendations.</div>
+            <button class="btn btn-dark" onclick="openLogin()" style="font-size:.85rem;padding:10px 22px">Unlock
+              Dashboard →</button>
+          </div>
+          <div style="font-size:4rem;flex-shrink:0">📋</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="home-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div>
+            <div class="footer-logo">VitaGuard <span class="dot"></span> AI</div>
+            <div class="footer-tagline">AI-powered preventive health intelligence. Four modules, one platform — helping
+              you understand and protect your health before problems arise.</div>
+          </div>
+          <div class="footer-col">
+            <h4>Modules</h4>
+            <ul>
+              <li><button onclick="showPage('symptom')">Symptom Analyzer</button></li>
+              <li><button onclick="showPage('firstaid')">First Aid Assistant</button></li>
+              <li><button onclick="showPage('mindguard')">MindGuard AI</button></li>
+              <li><button onclick="showPage('risk')">Risk Analyzer</button></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Platform</h4>
+            <ul>
+              <li><button onclick="openLogin()">Dashboard</button></li>
+              <li><button onclick="showToast('Coming soon!')">Health Reports</button></li>
+              <li><button onclick="showToast('Coming soon!')">Trend Analysis</button></li>
+              <li><button onclick="showToast('Coming soon!')">API Access</button></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><button onclick="showToast('Coming soon!')">Privacy Policy</button></li>
+              <li><button onclick="showToast('Coming soon!')">Terms of Service</button></li>
+              <li><button onclick="showToast('Coming soon!')">Medical Disclaimer</button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-disc">⚠️ VitaGuard AI is for informational and educational purposes only. It does not
+            provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for
+            medical decisions.</div>
+          <div class="footer-copy">© 2026 VitaGuard AI · Built with Groq AI</div>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- /page-home -->
+
+  <!-- ══ FEATURE PAGES (iframes) ══ -->
+  <div class="page feature-page" id="page-symptom">
+    <iframe class="feature-iframe" id="iframe-symptom" src="/symptom-analyzer" title="Symptom Analyzer"></iframe>
+  </div>
+
+  <div class="page feature-page" id="page-firstaid">
+    <iframe class="feature-iframe" id="iframe-firstaid" src="/first-aid-assistant" title="First Aid Assistant"></iframe>
+  </div>
+
+  <div class="page feature-page" id="page-mindguard">
+    <iframe class="feature-iframe" id="iframe-mindguard" src="/mindguard-ai" title="MindGuard AI"></iframe>
+  </div>
+
+  <div class="page feature-page" id="page-risk">
+    <iframe class="feature-iframe" id="iframe-risk" src="/risk-analysis" title="Risk Analyzer"></iframe>
+  </div>
+
+  <div class="page feature-page" id="page-skin">
+    <iframe class="feature-iframe" id="iframe-skin" src="/skin-detect" title="Skin Detection"></iframe>
+  </div>
+
+  <!-- ══ CHATBOT WIDGET ══ -->
+  <button class="chatbot-toggle" id="cbToggle" onclick="toggleChatbot()" title="Health Assistant">💬</button>
+  <div class="chatbot-window" id="cbWindow">
+    <div class="cb-header">
+      <div class="cb-header-left">
+        <div class="cb-header-dot">🤖</div>
+        <div class="cb-header-info">
+          <h4>VitaGuard Assistant</h4>
+          <span>Online</span>
+        </div>
+      </div>
+      <button class="cb-close" onclick="closeChatbot()">✕</button>
+    </div>
+    <div class="cb-messages" id="cbMessages"></div>
+    <div class="cb-input-area">
+      <input class="cb-input" id="cbInput" type="text" placeholder="Describe your health concern…"
+        onkeydown="if(event.key==='Enter')sendChatMessage()" />
+      <button class="cb-send" id="cbSend" onclick="sendChatMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════
+       PAGE NAVIGATION
+    ══════════════════════════════════════ */
+    const PAGES = ['home', 'symptom', 'firstaid', 'mindguard', 'risk', 'skin'];
+    const NAV_IDS = { symptom: 'nav-symptom', firstaid: 'nav-firstaid', mindguard: 'nav-mindguard', risk: 'nav-risk', skin: 'nav-skin' };
+    const MOB_IDS = { symptom: 'mob-symptom', firstaid: 'mob-firstaid', mindguard: 'mob-mindguard', risk: 'mob-risk', skin: 'mob-skin' };
+
+    function showPage(id) {
+      // Hide all pages
+      PAGES.forEach(p => {
+        const el = document.getElementById('page-' + p);
+        if (el) el.classList.remove('active');
+      });
+      // Show target
+      const target = document.getElementById('page-' + id);
+      if (target) target.classList.add('active');
+
+      // Update nav highlight
+      document.querySelectorAll('.nav-feature-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mobile-menu-feat').forEach(b => b.classList.remove('active'));
+      if (NAV_IDS[id]) document.getElementById(NAV_IDS[id])?.classList.add('active');
+      if (MOB_IDS[id]) document.getElementById(MOB_IDS[id])?.classList.add('active');
+
+      // Resize iframes dynamically on load
+      if (id !== 'home') {
+        const iframe = document.getElementById('iframe-' + id);
+        if (iframe && !iframe.dataset.loaded) {
+          iframe.dataset.loaded = 'true';
+          iframe.addEventListener('load', () => resizeIframe(iframe));
+          resizeIframe(iframe);
+        }
+      }
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resizeIframe(iframe) {
+      try {
+        const height = iframe.contentWindow?.document?.body?.scrollHeight;
+        if (height && height > 400) iframe.style.minHeight = height + 'px';
+      } catch (e) {
+        // cross-origin — use a tall default
+        iframe.style.minHeight = '100vh';
+      }
+    }
+
+    // Also listen for page scroll when inside iframes
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'resize' && e.data.height) {
+        const active = document.querySelector('.feature-page.active iframe');
+        if (active) active.style.minHeight = e.data.height + 'px';
+      }
+    });
+
+    /* ══════════════════════════════════════
+       MOBILE MENU
+    ══════════════════════════════════════ */
+    function toggleMobile() {
+      const menu = document.getElementById('mobileMenu');
+      const ham = document.getElementById('hamburger');
+      menu.classList.toggle('open');
+      const spans = ham.querySelectorAll('span');
+      if (menu.classList.contains('open')) {
+        spans[0].style.transform = 'rotate(45deg) translate(5px,5px)';
+        spans[1].style.opacity = '0';
+        spans[2].style.transform = 'rotate(-45deg) translate(5px,-5px)';
+      } else {
+        spans.forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+      }
+    }
+    function closeMobile() {
+      document.getElementById('mobileMenu').classList.remove('open');
+      const spans = document.getElementById('hamburger').querySelectorAll('span');
+      spans.forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#mobileMenu') && !e.target.closest('#hamburger'))
+        closeMobile();
+    });
+
+    /* ══════════════════════════════════════
+       DROPDOWN
+    ══════════════════════════════════════ */
+    function toggleDropdown() { document.getElementById('dropdownMenu').classList.toggle('open'); }
+    function closeDropdown() { document.getElementById('dropdownMenu').classList.remove('open'); }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown')) closeDropdown();
+    });
+
+    /* ══════════════════════════════════════
+       LOGIN MODAL
+    ══════════════════════════════════════ */
+    function openLogin() { document.getElementById('loginModal').classList.add('open'); }
+    function closeLogin() { document.getElementById('loginModal').classList.remove('open'); }
+    function switchAuthTab(tab) {
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+      document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+    }
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      if (!email) { showToast('Please enter your email'); return; }
+      closeLogin();
+      showToast('Welcome back! Dashboard coming soon 👋');
+    }
+    function handleSignup() {
+      const name = document.getElementById('signupName').value;
+      if (!name) { showToast('Please enter your name'); return; }
+      closeLogin();
+      showToast('Account created! Welcome to VitaGuard AI 🎉');
+    }
+    document.getElementById('loginModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('loginModal')) closeLogin();
+    });
+
+    /* ══════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════ */
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    /* ══════════════════════════════════════
+       ANIMATED STATS COUNTER
+    ══════════════════════════════════════ */
+    function animateCounter(id, target, suffix = '', duration = 1800) {
+      const el = document.getElementById(id);
+      let start = 0; const step = target / (duration / 16);
+      const timer = setInterval(() => {
+        start += step;
+        if (start >= target) { el.textContent = target + suffix; clearInterval(timer); return; }
+        el.textContent = Math.floor(start) + suffix;
+      }, 16);
+    }
+
+    /* ══════════════════════════════════════
+       ACTIVITY BARS
+    ══════════════════════════════════════ */
+    function buildActivityBars() {
+      const container = document.getElementById('activityBars');
+      if (!container) return;
+      const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const vals = [3, 5, 2, 6, 4, 7, 3];
+      const max = Math.max(...vals);
+      container.innerHTML = '';
+      days.forEach((d, i) => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;flex:1';
+        const bar = document.createElement('div');
+        bar.className = 'a-bar' + (i < 5 ? ' filled' : '');
+        bar.style.height = '4px';
+        bar.style.borderRadius = '3px 3px 0 0';
+        const label = document.createElement('div');
+        label.style.cssText = 'font-size:.68rem;color:var(--muted);font-family:var(--font-b)';
+        label.textContent = d;
+        wrap.appendChild(bar); wrap.appendChild(label);
+        container.appendChild(wrap);
+        setTimeout(() => {
+          bar.style.transition = `height .6s ease ${i * 0.07}s`;
+          bar.style.height = (vals[i] / max * 55) + 'px';
+        }, 400 + i * 60);
+      });
+    }
+
+    /* ══════════════════════════════════════
+       INIT ON LOAD
+    ══════════════════════════════════════ */
+    window.addEventListener('DOMContentLoaded', () => {
+      buildActivityBars();
+
+      // Animate stats on scroll
+      const statsEl = document.getElementById('sn1');
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          animateCounter('sn1', 12400, '+');
+          animateCounter('sn2', 5, '');
+          animateCounter('sn3', 9, '');
+          animateCounter('sn4', 94, '%');
+          observer.disconnect();
+        }
+      }, { threshold: 0.3 });
+      if (statsEl) observer.observe(statsEl);
+
+      // Show chatbot welcome after a short delay
+      setTimeout(() => {
+        if (!document.getElementById('cbMessages').hasChildNodes()) {
+          addCbMsg('bot', `👋 Hi! I'm your <strong>VitaGuard Assistant</strong>. Tell me what's bothering you and I'll take you to the right tool.<br><br><em>Try: "I have a rash", "I feel anxious", "I cut my hand"</em>`);
+        }
+      }, 600);
+    });
+
+    /* ══════════════════════════════════════
+       CHATBOT
+    ══════════════════════════════════════ */
+    const CB_PAGE_MAP = {
+      symptom: { label: '🩺 Symptom Analyzer', desc: 'Analyze your symptoms with AI' },
+      firstaid: { label: '🚑 First Aid Assistant', desc: 'Step-by-step emergency guidance' },
+      mindguard: { label: '🧠 MindGuard AI', desc: 'Mental wellness & emotional support' },
+      risk: { label: '📊 Health Risk Analyzer', desc: 'Assess your health risk score' },
+      skin: { label: '🩸 Skin Detection', desc: 'AI-powered skin condition analysis' }
+    };
+
+    function toggleChatbot() {
+      const win = document.getElementById('cbWindow');
+      const btn = document.getElementById('cbToggle');
+      const isOpen = win.classList.toggle('open');
+      btn.classList.toggle('open', isOpen);
+      btn.textContent = isOpen ? '✕' : '💬';
+      if (isOpen) document.getElementById('cbInput').focus();
+    }
+    function closeChatbot() {
+      document.getElementById('cbWindow').classList.remove('open');
+      const btn = document.getElementById('cbToggle');
+      btn.classList.remove('open');
+      btn.textContent = '💬';
+    }
+
+    function addCbMsg(type, html) {
+      const box = document.getElementById('cbMessages');
+      const div = document.createElement('div');
+      div.className = 'cb-msg ' + type;
+      div.innerHTML = html;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+      return div;
+    }
+
+    function addCbNavCard(pageKey) {
+      const info = CB_PAGE_MAP[pageKey];
+      if (!info) return;
+      const box = document.getElementById('cbMessages');
+      const div = document.createElement('div');
+      div.className = 'cb-msg bot nav-card';
+      div.innerHTML = `<div class="cb-nav-label">Recommended Tool</div>
+    <div class="cb-nav-name">${info.label}</div>
+    <div class="cb-nav-hint">Click to open → ${info.desc}</div>`;
+      div.onclick = () => { showPage(pageKey); closeChatbot(); };
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function showCbTyping() {
+      const box = document.getElementById('cbMessages');
+      const div = document.createElement('div');
+      div.className = 'cb-typing'; div.id = 'cbTyping';
+      div.innerHTML = '<span></span><span></span><span></span>';
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+    function hideCbTyping() { const el = document.getElementById('cbTyping'); if (el) el.remove(); }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('cbInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      document.getElementById('cbSend').disabled = true;
+      addCbMsg('user', text);
+      showCbTyping();
+
+      const systemPrompt = `You are VitaGuard's navigation assistant. The user will describe a health concern. Your ONLY job is to:
+1. Identify which tool page they need from these options:
+   - "symptom" — for general symptoms, illness, fever, pain, cough, nausea, etc.
+   - "firstaid" — for injuries, burns, cuts, bleeding, choking, fractures, emergencies
+   - "mindguard" — for mental health, anxiety, stress, depression, sadness, mood, emotional concerns
+   - "risk" — for health risk assessment, lifestyle analysis, BMI, diabetes risk, heart disease risk
+   - "skin" — for skin conditions, rashes, moles, acne, skin lesions, skin cancer detection
+2. Respond with ONLY valid JSON (no markdown, no backticks): {"page":"<key>","message":"<brief friendly 1-2 sentence response telling the user what tool you're directing them to and why>"}
+If the user's message is unclear or not health-related, respond with: {"page":"none","message":"<ask them to describe a health concern>"}`;
+
+      try {
+        const res = await fetch('/api/groq', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            max_tokens: 200,
+            temperature: 0.3,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: text }
+            ]
+          })
+        });
+
+        hideCbTyping();
+
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        let raw = data?.choices?.[0]?.message?.content || '';
+
+        // Strip markdown code fences if present
+        raw = raw.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch (e) {
+          addCbMsg('bot', 'Sorry, I couldn\'t understand that. Could you describe your health concern in more detail?');
+          document.getElementById('cbSend').disabled = false;
+          return;
+        }
+
+        addCbMsg('bot', parsed.message || 'Let me help you with that.');
+
+        if (parsed.page && parsed.page !== 'none' && CB_PAGE_MAP[parsed.page]) {
+          setTimeout(() => {
+            addCbNavCard(parsed.page);
+            // Auto-navigate after a brief pause
+            setTimeout(() => { showPage(parsed.page); closeChatbot(); }, 2500);
+          }, 500);
+        }
+
+      } catch (err) {
+        hideCbTyping();
+        console.error('Chatbot error:', err);
+        addCbMsg('bot', 'Oops, something went wrong. Please try again in a moment.');
+      }
+
+      document.getElementById('cbSend').disabled = false;
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,4135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VitaGuard AI — Predict Risk Before Diagnosis</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f5f0e8;
+      --bg2: #ede8dc;
+      --white: #fdfaf5;
+      --ink: #1a1612;
+      --ink2: #3d3530;
+      --muted: #8c7e72;
+      --border: #d5cdc0;
+      --accent: #1a7a5e;
+      --accent-lt: #e8f5f0;
+      --accent2: #15644e;
+      --warn: #d4870a;
+      --danger: #c0392b;
+      --low: #1a7a5e;
+      --mod: #d4870a;
+      --high: #c0392b;
+      --low-bg: #e8f5f0;
+      --mod-bg: #fef5e4;
+      --high-bg: #fdecea;
+      --shadow: 0 4px 24px rgba(26, 22, 18, .1);
+      --shadow-lg: 0 12px 48px rgba(26, 22, 18, .15);
+      --r: 14px;
+      --font-h: 'Playfair Display', Georgia, serif;
+      --font-b: 'Outfit', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-b);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── GRAIN TEXTURE ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: .5;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* ── NAVBAR ── */
+    #navbar {
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      background: rgba(245, 240, 232, .95);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+    }
+
+    .nav-logo {
+      font-family: var(--font-h);
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .nav-logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      animation: dot-breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes dot-breathe {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+
+      50% {
+        transform: scale(1.4);
+        opacity: .7
+      }
+    }
+
+    .nav-badge {
+      background: var(--accent-lt);
+      color: var(--accent);
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 50px;
+      border: 1px solid rgba(26, 122, 94, .2);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: none;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      font-family: var(--font-b);
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 7px 16px;
+      border-radius: 50px;
+      transition: all .2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .nav-btn.primary {
+      background: var(--accent);
+      color: var(--white);
+      border-color: var(--accent);
+    }
+
+    .nav-btn.primary:hover {
+      background: var(--accent2);
+      border-color: var(--accent2);
+    }
+
+    /* ══ PAGE SYSTEM ══ */
+    .page {
+      display: none;
+      animation: pg-in .35s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes pg-in {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ══════════════════════════════════════
+   PAGE 1 — HOME
+══════════════════════════════════════ */
+    .hero {
+      padding: 100px 48px 80px;
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-lt);
+      color: var(--accent);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 50px;
+      border: 1px solid rgba(26, 122, 94, .2);
+      margin-bottom: 24px;
+    }
+
+    .hero-eyebrow::before {
+      content: '●';
+      font-size: .5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-h);
+      font-size: clamp(2.6rem, 4.5vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 .hl {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.75;
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-b);
+      font-weight: 600;
+      font-size: .95rem;
+      padding: 13px 28px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all .22s;
+      text-decoration: none;
+    }
+
+    .btn-dark {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .btn-dark:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(26, 122, 94, .3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--ink);
+      background: var(--bg2);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    .btn-accent:hover {
+      background: #15644e;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(26, 122, 94, .35);
+    }
+
+    /* Hero visual card */
+    .hero-card {
+      background: var(--white);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(26, 122, 94, .12) 0%, transparent 70%);
+    }
+
+    .hc-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .hc-score {
+      font-family: var(--font-h);
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .hc-sub {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    .hc-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hc-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .hc-bar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: .8rem;
+    }
+
+    .hc-bar-meta span:first-child {
+      color: var(--ink2);
+      font-weight: 500;
+    }
+
+    .hc-bar-meta span:last-child {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .hc-bar-bg {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .hc-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    .hc-risk-badge {
+      display: inline-block;
+      margin-top: 24px;
+      background: var(--low-bg);
+      color: var(--low);
+      font-weight: 700;
+      font-size: .85rem;
+      padding: 8px 18px;
+      border-radius: 50px;
+      border: 1px solid rgba(26, 122, 94, .2);
+    }
+
+    /* Steps */
+    .steps-section {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 70px 48px;
+    }
+
+    .steps-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .steps-inner .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .steps-inner h2 {
+      font-family: var(--font-h);
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 52px;
+      letter-spacing: -.5px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+
+    .step-item {
+      position: relative;
+    }
+
+    .step-num {
+      font-family: var(--font-h);
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--bg2);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .step-item h3 {
+      font-family: var(--font-h);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-item p {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.65;
+    }
+
+    .step-arrow {
+      position: absolute;
+      top: 20px;
+      right: -28px;
+      color: var(--border);
+      font-size: 1.5rem;
+    }
+
+    /* Feature cards */
+    .features-section {
+      padding: 80px 48px;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .features-section .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .features-section h2 {
+      font-family: var(--font-h);
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 40px;
+      letter-spacing: -.5px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .feat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px;
+      transition: all .22s;
+    }
+
+    .feat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+      border-color: rgba(26, 122, 94, .25);
+    }
+
+    .feat-emoji {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+
+    .feat-card h3 {
+      font-family: var(--font-h);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feat-card p {
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+
+    /* Footer strip */
+    .home-footer {
+      background: var(--ink);
+      color: rgba(255, 255, 255, .4);
+      text-align: center;
+      padding: 24px 48px;
+      font-size: .8rem;
+    }
+
+    .home-footer span {
+      color: rgba(255, 255, 255, .7);
+    }
+
+    /* ══════════════════════════════════════
+   PAGE 2 — ASSESSMENT
+══════════════════════════════════════ */
+    .assess-wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 60px 48px;
+    }
+
+    .page-header {
+      margin-bottom: 40px;
+    }
+
+    .page-header .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .page-header h1 {
+      font-family: var(--font-h);
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: -.5px;
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* Progress bar */
+    .form-progress {
+      margin-bottom: 36px;
+    }
+
+    .fp-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .fp-labels .fp-active {
+      color: var(--accent);
+    }
+
+    .fp-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .fp-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    /* Form sections */
+    .form-sec {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 20px;
+    }
+
+    .form-sec-title {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-sec-title .sec-ico {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent-lt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-row.single {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    label {
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+    }
+
+    input[type=number],
+    input[type=text],
+    select {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--ink);
+      font-family: var(--font-b);
+      font-size: .95rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color .2s, background .2s;
+      -webkit-appearance: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      background: var(--white);
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    select option {
+      background: var(--white);
+    }
+
+    /* BMI live display */
+    .bmi-live {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: .95rem;
+      color: var(--muted);
+      transition: all .2s;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+    }
+
+    .bmi-live.ok {
+      color: var(--accent);
+      border-color: rgba(26, 122, 94, .3);
+      background: var(--accent-lt);
+    }
+
+    .bmi-live.warn {
+      color: var(--warn);
+      border-color: rgba(212, 135, 10, .3);
+      background: var(--mod-bg);
+    }
+
+    .bmi-live.danger {
+      color: var(--danger);
+      border-color: rgba(192, 57, 43, .3);
+      background: var(--high-bg);
+    }
+
+    /* Range sliders */
+    .slider-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider-header label {
+      margin: 0;
+    }
+
+    .slider-val {
+      background: var(--accent);
+      color: var(--white);
+      font-weight: 700;
+      font-size: .82rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      padding: 0;
+      border: none;
+      background-image: linear-gradient(var(--accent), var(--accent));
+      background-size: 50% 100%;
+      background-repeat: no-repeat;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--accent);
+      box-shadow: 0 2px 8px rgba(26, 122, 94, .3);
+      cursor: pointer;
+      transition: transform .15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: .72rem;
+      color: var(--muted);
+    }
+
+    /* Checkbox group */
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .check-item input[type=checkbox] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    .check-item span {
+      font-size: .9rem;
+      font-weight: 500;
+    }
+
+    /* Submit */
+    .form-submit-row {
+      margin-top: 8px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--ink);
+      color: var(--white);
+      font-family: var(--font-b);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all .22s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent);
+      box-shadow: 0 8px 28px rgba(26, 122, 94, .3);
+      transform: translateY(-1px);
+    }
+
+    /* ══════════════════════════════════════
+   PAGE 3 — RESULTS
+══════════════════════════════════════ */
+    .results-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 60px 48px;
+    }
+
+    /* Score hero */
+    .score-hero {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 52px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 52px;
+      align-items: center;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .score-dial {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      flex-shrink: 0;
+    }
+
+    .score-dial svg {
+      transform: rotate(-90deg);
+    }
+
+    .dial-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dial-num {
+      font-family: var(--font-h);
+      font-size: 3.2rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .dial-denom {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .score-meta h2 {
+      font-family: var(--font-h);
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: -.3px;
+    }
+
+    .score-meta p {
+      color: var(--muted);
+      font-size: .92rem;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .risk-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 700;
+      font-size: .9rem;
+      padding: 8px 18px;
+      border-radius: 50px;
+      border: 1.5px solid;
+    }
+
+    .risk-pill.low {
+      color: var(--low);
+      background: var(--low-bg);
+      border-color: rgba(26, 122, 94, .25);
+    }
+
+    .risk-pill.mod {
+      color: var(--mod);
+      background: var(--mod-bg);
+      border-color: rgba(212, 135, 10, .25);
+    }
+
+    .risk-pill.high {
+      color: var(--high);
+      background: var(--high-bg);
+      border-color: rgba(192, 57, 43, .25);
+    }
+
+    /* Results grid */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .r-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+    }
+
+    .r-card.full {
+      grid-column: 1/-1;
+    }
+
+    .r-card-title {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .r-card-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    /* Factor bars */
+    .factors-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .f-row {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .f-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .f-name {
+      font-size: .88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .f-pts {
+      font-family: var(--font-h);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .f-track {
+      height: 7px;
+      background: var(--bg2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .f-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), #2ea87a);
+      transition: width 1s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* Recommendations */
+    .recs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .rec-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 18px 20px;
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: border-color .2s;
+    }
+
+    .rec-row:hover {
+      border-color: rgba(26, 122, 94, .3);
+    }
+
+    .rec-ico {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--accent-lt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .rec-body {
+      flex: 1;
+    }
+
+    .rec-body strong {
+      display: block;
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: 3px;
+    }
+
+    .rec-body span {
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.5;
+    }
+
+    /* User summary */
+    .user-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .us-item {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+    }
+
+    .us-label {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .us-val {
+      font-family: var(--font-h);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    /* Action row */
+    .results-actions {
+      margin-top: 28px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* ══════════════════════════════════════
+   PAGE 4 — TRACKER
+══════════════════════════════════════ */
+    .tracker-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 48px;
+    }
+
+    .tracker-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Update form */
+    .tracker-form {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      position: sticky;
+      top: 84px;
+    }
+
+    .tracker-form h3 {
+      font-family: var(--font-h);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .tf-group {
+      margin-bottom: 18px;
+    }
+
+    .tf-group label {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .btn-track {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: var(--white);
+      font-family: var(--font-b);
+      font-weight: 700;
+      font-size: .92rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 8px;
+    }
+
+    .btn-track:hover {
+      background: #15644e;
+      transform: translateY(-1px);
+    }
+
+    /* Chart + history */
+    .tracker-right {}
+
+    .chart-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .chart-card h3 {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .chart-container {
+      height: 220px;
+    }
+
+    .history-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .history-card h3 {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .history-entries {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .history-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      transition: border-color .2s;
+    }
+
+    .history-entry:hover {
+      border-color: rgba(26, 122, 94, .25);
+    }
+
+    .he-date {
+      color: var(--muted);
+      font-size: .83rem;
+      font-weight: 500;
+    }
+
+    .he-score {
+      font-family: var(--font-h);
+      font-size: 1.5rem;
+      font-weight: 900;
+    }
+
+    .he-change {
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
+    .he-change.better {
+      color: var(--low);
+    }
+
+    .he-change.worse {
+      color: var(--high);
+    }
+
+    .he-change.same {
+      color: var(--muted);
+    }
+
+    .improvement-banner {
+      background: var(--low-bg);
+      border: 1px solid rgba(26, 122, 94, .2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: .9rem;
+    }
+
+    .improvement-banner .ib-icon {
+      font-size: 1.4rem;
+    }
+
+    .empty-tracker {
+      text-align: center;
+      padding: 52px 20px;
+      color: var(--muted);
+    }
+
+    .empty-tracker .et-icon {
+      font-size: 2.8rem;
+      margin-bottom: 12px;
+    }
+
+    .empty-tracker p {
+      font-size: .92rem;
+      margin-bottom: 24px;
+    }
+
+    /* Print page */
+    @media print {
+
+      .hero-actions,
+      .results-actions,
+      .home-footer {
+        display: none !important;
+      }
+    }
+
+    /* ═══ LOADER ═══ */
+    .loader-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: var(--bg);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .loader-screen.show {
+      display: flex;
+    }
+
+    .loader-bars {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      height: 48px;
+    }
+
+    .lb {
+      width: 8px;
+      border-radius: 4px;
+      background: var(--accent);
+      animation: bar-pulse 1s ease-in-out infinite;
+    }
+
+    .lb:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .lb:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .lb:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    .lb:nth-child(4) {
+      animation-delay: .45s;
+    }
+
+    .lb:nth-child(5) {
+      animation-delay: .6s;
+    }
+
+    @keyframes bar-pulse {
+
+      0%,
+      100% {
+        height: 16px;
+        opacity: .4;
+      }
+
+      50% {
+        height: 48px;
+        opacity: 1;
+      }
+    }
+
+    .loader-msg {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -.2px;
+    }
+
+    .loader-sub {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    /* ═══ ABOUT ═══ */
+    .about-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 48px;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 40px;
+    }
+
+    .about-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+    }
+
+    .about-card h3 {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .about-card p {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.7;
+    }
+
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    .score-table th {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .score-table td {
+      padding: 9px 12px;
+      font-size: .88rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .score-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .score-table .pts {
+      font-weight: 700;
+      color: var(--accent);
+      font-family: var(--font-h);
+    }
+
+    .disclaimer {
+      background: var(--mod-bg);
+      border: 1px solid rgba(212, 135, 10, .2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 28px;
+      font-size: .85rem;
+      color: var(--ink2);
+      line-height: 1.6;
+    }
+
+    .disclaimer strong {
+      color: var(--warn);
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 60px 24px;
+      }
+
+      .hero-card {
+        display: none;
+      }
+
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .step-arrow {
+        display: none;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tracker-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tracker-form {
+        position: static;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .user-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .score-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .steps-section,
+      .features-section,
+      .assess-wrap,
+      .results-wrap,
+      .tracker-wrap,
+      .about-wrap {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+
+
+
+
+    /* ── CHAT UI ── */
+    .chat-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chat-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .chat-header .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .chat-header h1 {
+      font-family: var(--font-h);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: -.5px;
+      margin-bottom: 10px;
+    }
+
+    .chat-header p {
+      color: var(--muted);
+      font-size: .95rem;
+      line-height: 1.6;
+    }
+
+    .chat-thread {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 100px;
+    }
+
+    /* Bot message bubble */
+    .msg-bot {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: msg-in .35s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .bot-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      font-family: var(--font-h);
+      box-shadow: 0 2px 8px rgba(26, 22, 18, .2);
+    }
+
+    .bot-bubble {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 20px 4px;
+      padding: 16px 20px;
+      max-width: 540px;
+      box-shadow: 0 2px 12px rgba(26, 22, 18, .06);
+      color: var(--ink);
+      font-size: .95rem;
+      line-height: 1.65;
+    }
+
+    .bot-bubble strong {
+      font-weight: 600;
+    }
+
+    .bot-bubble .q-hint {
+      display: block;
+      margin-top: 8px;
+      font-size: .82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* User message bubble */
+    .msg-user {
+      display: flex;
+      justify-content: flex-end;
+      animation: msg-in .35s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .user-bubble {
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 20px 20px 4px 20px;
+      padding: 13px 20px;
+      max-width: 400px;
+      font-size: .93rem;
+      line-height: 1.55;
+      font-weight: 500;
+    }
+
+    @keyframes msg-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 20px 4px;
+      box-shadow: 0 2px 12px rgba(26, 22, 18, .06);
+    }
+
+    .typing-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: dot-bounce .9s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes dot-bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: translateY(0);
+        opacity: .5;
+      }
+
+      40% {
+        transform: translateY(-5px);
+        opacity: 1;
+      }
+    }
+
+    /* Input area */
+    .chat-input-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(245, 240, 232, .95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      z-index: 100;
+    }
+
+    .chat-input-inner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Inside iframe: switch to sticky to avoid midpage floating bar */
+    body.in-iframe .chat-input-area {
+      position: sticky;
+      bottom: 0;
+      left: auto;
+      right: auto;
+    }
+
+    body.in-iframe .chat-progress {
+      position: sticky;
+      top: 0;
+    }
+
+    body.in-iframe .chat-wrap {
+      padding-bottom: 20px;
+    }
+
+    /* Option buttons (choice type) */
+    .option-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 6px 0 4px;
+    }
+
+    .opt-btn {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 9px 18px;
+      font-family: var(--font-b);
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all .18s;
+      white-space: nowrap;
+    }
+
+    .opt-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-lt);
+    }
+
+    .opt-btn.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--white);
+    }
+
+    /* Multi-select */
+    .multi-hint {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    .confirm-btn {
+      background: var(--ink);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-family: var(--font-b);
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 4px;
+    }
+
+    .confirm-btn:hover {
+      background: var(--accent);
+    }
+
+    /* Number input */
+    .num-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .num-input-row input {
+      flex: 1;
+      max-width: 200px;
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 18px;
+      font-family: var(--font-b);
+      font-size: .95rem;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      transition: border-color .18s;
+    }
+
+    .num-input-row input:focus {
+      border-color: var(--accent);
+    }
+
+    .send-btn {
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 10px 22px;
+      font-family: var(--font-b);
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .send-btn:hover {
+      background: #15644e;
+    }
+
+    /* Slider input */
+    .slider-chat-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    .slider-chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider-chat-label {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .slider-chat-val {
+      font-family: var(--font-h);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--accent) var(--pct, 50%), var(--bg2) var(--pct, 50%));
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 2.5px solid var(--accent);
+      box-shadow: 0 2px 8px rgba(26, 122, 94, .3);
+      cursor: pointer;
+    }
+
+    /* Progress bar at top of chat */
+    .chat-progress {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border);
+      z-index: 200;
+    }
+
+    .chat-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width .5s cubic-bezier(.4, 0, .2, 1);
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* Step label in chat */
+    .step-label {
+      text-align: center;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin: 8px 0 4px;
+    }
+
+    /* BMI badge in chat */
+    .bmi-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: .8rem;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .bmi-badge.ok {
+      background: var(--low-bg);
+      color: var(--low);
+    }
+
+    .bmi-badge.warn {
+      background: var(--mod-bg);
+      color: var(--warn);
+    }
+
+    .bmi-badge.danger {
+      background: var(--high-bg);
+      color: var(--high);
+    }
+
+    /* ── CHAT RESULT CARDS ── */
+    .chat-result-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 4px 24px rgba(26, 22, 18, .07);
+      animation: msg-in .4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* Score hero card */
+    .crc-score-hero {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .crc-dial-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+    }
+
+    .crc-dial-wrap svg {
+      width: 120px;
+      height: 120px;
+    }
+
+    .crc-dial-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crc-dial-num {
+      font-family: var(--font-h);
+      font-size: 1.8rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .crc-dial-denom {
+      font-size: .65rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .crc-score-info {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .crc-score-info h3 {
+      font-family: var(--font-h);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .crc-score-info p {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+
+    .crc-risk-pill {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+
+    .crc-risk-pill.low {
+      background: var(--low-bg);
+      color: var(--low);
+    }
+
+    .crc-risk-pill.mod {
+      background: var(--mod-bg);
+      color: var(--warn);
+    }
+
+    .crc-risk-pill.high {
+      background: var(--high-bg);
+      color: var(--high);
+    }
+
+    /* User stat chips */
+    .crc-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .crc-stat {
+      background: var(--bg2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: .8rem;
+    }
+
+    .crc-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: .68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 2px;
+    }
+
+    .crc-stat strong {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* Factor breakdown card */
+    .crc-factor-row {
+      margin-bottom: 14px;
+    }
+
+    .crc-factor-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .crc-factor-name {
+      font-size: .88rem;
+      font-weight: 600;
+    }
+
+    .crc-factor-pts {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--accent2);
+      font-family: var(--font-h);
+    }
+
+    .crc-factor-track {
+      height: 6px;
+      background: var(--bg2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .crc-factor-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #2ea87a);
+      border-radius: 3px;
+      transition: width 1s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* Rec card */
+    .crc-rec-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .crc-rec-row:last-child {
+      border-bottom: none;
+    }
+
+    .crc-rec-ico {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .crc-rec-body strong {
+      display: block;
+      font-size: .9rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .crc-rec-body span {
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Card section label */
+    .crc-section-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .crc-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Radar in chat */
+    .crc-radar-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .crc-radar-wrap canvas {
+      max-width: 260px;
+      max-height: 260px;
+    }
+
+    /* Chat result actions */
+    .crc-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .crc-action-btn {
+      background: var(--ink);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 10px 22px;
+      font-family: var(--font-b);
+      font-weight: 600;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .crc-action-btn:hover {
+      background: var(--accent);
+    }
+
+    .crc-action-btn.outline {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--ink);
+    }
+
+    .crc-action-btn.outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Full-width bot message for result cards */
+    .msg-bot-full {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: msg-in .35s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* ── DISEASE SCORE GRID ── */
+    .disease-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .disease-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .disease-card.full-row { grid-column: 1 / -1; }
+    .dc-mini-dial {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+    }
+    .dc-mini-dial svg { width: 60px; height: 60px; }
+    .dc-dial-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .dc-dial-num {
+      font-family: var(--font-h);
+      font-size: .95rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .dc-dial-denom {
+      font-size: .52rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .dc-info { flex: 1; min-width: 0; }
+    .dc-label {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .dc-pill {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 50px;
+      font-size: .7rem;
+      font-weight: 700;
+    }
+    .dc-pill.low  { background: var(--low-bg);  color: var(--low); }
+    .dc-pill.mod  { background: var(--mod-bg);  color: var(--warn); }
+    .dc-pill.high { background: var(--high-bg); color: var(--high); }
+    .blended-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 14px 0 12px;
+    }
+    .blended-note {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav id="navbar">
+    <div class="nav-right">
+      <span class="nav-badge">🏥 Risk Analyzer</span>
+      <button class="nav-btn" onclick="nav('about')">How It Works</button>
+      <button class="nav-btn primary" onclick="nav('assess')">Start Assessment →</button>
+    </div>
+  </nav>
+
+  <!-- LOADER -->
+  <div class="loader-screen" id="loader">
+    <div class="loader-bars">
+      <div class="lb"></div>
+      <div class="lb"></div>
+      <div class="lb"></div>
+      <div class="lb"></div>
+      <div class="lb"></div>
+    </div>
+    <div class="loader-msg">Running ML Risk Analysis…</div>
+    <div class="loader-sub">Running 5 disease risk models · building your health profile</div>
+  </div>
+
+
+  <!-- Chat progress bar -->
+  <div class="chat-progress" id="chatProgress" style="display:none">
+    <div class="chat-progress-fill" id="chatProgressFill" style="width:0%"></div>
+  </div>
+
+  <!-- ════════════════════════════════════
+     PAGE: HOME
+════════════════════════════════════ -->
+  <div id="page-home" class="page active">
+    <div
+      style="max-width:720px; margin:0 auto; padding:80px 24px 60px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+
+      <span
+        style="font-size:.72rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:14px; display:block;">AI-Powered
+        Preventive Health</span>
+      <h1
+        style="font-family:var(--font-h); font-size:clamp(2rem,4vw,2.8rem); font-weight:900; line-height:1.15; letter-spacing:-.5px; margin-bottom:18px;">
+        Predict Disease Risk<br /><em style="color:var(--accent); font-style:italic;">Before Diagnosis</em></h1>
+      <p style="color:var(--muted); font-size:.97rem; line-height:1.7; margin-bottom:36px; max-width:500px;">Most people
+        ignore early warning signs until it's too late. VitaGuard AI converts your daily lifestyle habits into a
+        measurable disease risk score — with a personalized plan to fix it.</p>
+
+      <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:48px;">
+        <button class="btn btn-dark" onclick="nav('assess')">Start Health Assessment →</button>
+        <button class="btn btn-outline" onclick="nav('about')">See How It Works</button>
+      </div>
+
+      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+        <div
+          style="background:var(--white); border:1px solid var(--border); border-radius:50px; padding:8px 18px; font-size:.83rem; font-weight:500; color:var(--ink2);">
+          💬 AI-Powered Assessment</div>
+        <div
+          style="background:var(--white); border:1px solid var(--border); border-radius:50px; padding:8px 18px; font-size:.83rem; font-weight:500; color:var(--ink2);">
+          🎯 0–10 Risk Score</div>
+        <div
+          style="background:var(--white); border:1px solid var(--border); border-radius:50px; padding:8px 18px; font-size:.83rem; font-weight:500; color:var(--ink2);">
+          💡 Personalized Plan</div>
+        <div
+          style="background:var(--white); border:1px solid var(--border); border-radius:50px; padding:8px 18px; font-size:.83rem; font-weight:500; color:var(--ink2);">
+          📈 Weekly Tracker</div>
+        <div
+          style="background:var(--white); border:1px solid var(--border); border-radius:50px; padding:8px 18px; font-size:.83rem; font-weight:500; color:var(--ink2);">
+          🛡️ 100% Pre-Diagnosis</div>
+      </div>
+
+      <div
+        style="margin-top:48px; background:var(--white); border:1px solid var(--border); border-radius:20px; padding:24px 28px; max-width:520px; box-shadow:0 4px 24px rgba(26,22,18,.07); text-align:left;">
+        <div
+          style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:14px;">
+          How It Works</div>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div
+              style="font-family:var(--font-h); font-size:1.6rem; font-weight:900; color:var(--bg2); line-height:1; flex-shrink:0;">
+              01</div>
+            <div><strong style="display:block; font-size:.9rem; margin-bottom:3px;">Answer a Short
+                Conversation</strong><span style="font-size:.83rem; color:var(--muted);">9 questions about your daily
+                habits — sleep, exercise, diet, and more.</span></div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div
+              style="font-family:var(--font-h); font-size:1.6rem; font-weight:900; color:var(--bg2); line-height:1; flex-shrink:0;">
+              02</div>
+            <div><strong style="display:block; font-size:.9rem; margin-bottom:3px;">Get Your AI Risk Score</strong><span
+                style="font-size:.83rem; color:var(--muted);">A 0–10 score across Diabetes, Hypertension, Obesity, and
+                Cardiac risks.</span></div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div
+              style="font-family:var(--font-h); font-size:1.6rem; font-weight:900; color:var(--bg2); line-height:1; flex-shrink:0;">
+              03</div>
+            <div><strong style="display:block; font-size:.9rem; margin-bottom:3px;">Follow Your Prevention
+                Plan</strong><span style="font-size:.83rem; color:var(--muted);">Personalized action plan targeting your
+                specific risk factors. Track weekly progress.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px; font-size:.78rem; color:var(--muted); max-width:500px; line-height:1.6;">
+        <strong style="color:var(--warn);">⚠️ Disclaimer:</strong> VitaGuard AI is for lifestyle decision-support only.
+        Not a substitute for professional medical advice. Always consult a qualified healthcare professional.
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+     PAGE: ASSESSMENT (CHATBOT)
+════════════════════════════════════ -->
+  <div id="page-assess" class="page">
+    <div class="chat-wrap">
+      <div class="chat-header">
+        <span class="sec-label">AI Health Assessment</span>
+        <h1>Let's Check Your Health Risk</h1>
+        <p>I'll ask you a few simple questions about your daily lifestyle.<br />This takes under 2 minutes — no medical
+          tests needed.</p>
+      </div>
+
+      <div class="chat-thread" id="chatThread">
+        <!-- Messages injected by JS -->
+      </div>
+    </div>
+
+    <!-- Fixed input area at bottom -->
+    <div class="chat-input-area" id="chatInputArea">
+      <div class="chat-input-inner" id="chatInputInner">
+        <!-- Dynamic input injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+     PAGE: RESULTS
+════════════════════════════════════ -->
+  <div id="page-results" class="page">
+    <div class="results-wrap">
+
+      <div class="page-header">
+        <div class="sec-label">Your Analysis</div>
+        <h1>Risk Score Results</h1>
+        <p>Based on your lifestyle assessment — last updated <span id="resultDate">—</span></p>
+      </div>
+
+      <!-- Score hero -->
+      <div class="score-hero">
+        <div class="score-dial">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="76" fill="none" stroke="#ede8dc" stroke-width="12" />
+            <circle id="dialCircle" cx="90" cy="90" r="76" fill="none" stroke="url(#dialGrad)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="477" stroke-dashoffset="477"
+              style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)" />
+            <defs>
+              <linearGradient id="dialGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#1a7a5e" id="gStop1" />
+                <stop offset="100%" stop-color="#2ea87a" id="gStop2" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="dial-center">
+            <div class="dial-num" id="dialNum">—</div>
+            <div class="dial-denom">/10</div>
+          </div>
+        </div>
+
+        <div class="score-meta">
+          <h2 id="scoreTitle">—</h2>
+          <p id="scoreDesc">—</p>
+          <span class="risk-pill" id="riskPill">—</span>
+
+          <div class="user-summary" style="margin-top:24px" id="userSummary">
+            <!-- filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <!-- Factor breakdown -->
+        <div class="r-card">
+          <div class="r-card-title">Risk Factor Breakdown</div>
+          <div class="factors-list" id="factorsList"></div>
+        </div>
+
+        <!-- Radar chart -->
+        <div class="r-card">
+          <div class="r-card-title">Lifestyle Radar</div>
+          <canvas id="radarCanvas" height="240"></canvas>
+        </div>
+
+        <!-- Personalized plan -->
+        <div class="r-card full">
+          <div class="r-card-title">Personalized Prevention Plan</div>
+          <div class="recs-list" id="recsList"></div>
+        </div>
+      </div>
+
+      <div class="results-actions">
+        <button class="btn btn-dark" onclick="nav('tracker')">Track Weekly Progress →</button>
+        <button class="btn btn-outline" onclick="restartChat()">Reassess</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Print Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+     PAGE: TRACKER
+════════════════════════════════════ -->
+  <div id="page-tracker" class="page">
+    <div class="tracker-wrap">
+
+      <div class="page-header">
+        <div class="sec-label">Weekly Monitoring</div>
+        <h1>Progress Tracker</h1>
+        <p>Update your lifestyle metrics weekly and see how your risk score changes over time.</p>
+      </div>
+
+      <div id="improvementBanner" style="display:none" class="improvement-banner">
+        <span class="ib-icon">🎉</span>
+        <span id="improvementText">—</span>
+      </div>
+
+      <div class="tracker-grid">
+        <!-- Update form -->
+        <div class="tracker-form">
+          <h3>Update This Week</h3>
+
+          <div class="tf-group">
+            <label>Sleep Hours / Night</label>
+            <div class="slider-wrap">
+              <div class="slider-header">
+                <span style="font-size:.78rem; color:var(--muted)">Current</span>
+                <span class="slider-val" id="tSleepVal">7.0 hrs</span>
+              </div>
+              <input type="range" id="tSleep" min="2" max="12" step="0.5" value="7"
+                oninput="syncSlider('tSleep','tSleepVal',v=>v+' hrs')" />
+            </div>
+          </div>
+
+          <div class="tf-group">
+            <label>Exercise Days / Week</label>
+            <div class="slider-wrap">
+              <div class="slider-header">
+                <span style="font-size:.78rem; color:var(--muted)">Current</span>
+                <span class="slider-val" id="tExVal">3 days</span>
+              </div>
+              <input type="range" id="tExercise" min="0" max="7" step="1" value="3"
+                oninput="syncSlider('tExercise','tExVal',v=>v+' days')" />
+            </div>
+          </div>
+
+          <div class="tf-group">
+            <label>Stress Level (1–10)</label>
+            <div class="slider-wrap">
+              <div class="slider-header">
+                <span style="font-size:.78rem; color:var(--muted)">Current</span>
+                <span class="slider-val" id="tStressVal">5</span>
+              </div>
+              <input type="range" id="tStress" min="1" max="10" step="1" value="5"
+                oninput="syncSlider('tStress','tStressVal',v=>v)" />
+            </div>
+          </div>
+
+          <div class="tf-group">
+            <label>Screen Time / Day (hrs)</label>
+            <div class="slider-wrap">
+              <div class="slider-header">
+                <span style="font-size:.78rem; color:var(--muted)">Current</span>
+                <span class="slider-val" id="tScreenVal">6 hrs</span>
+              </div>
+              <input type="range" id="tScreen" min="0" max="16" step="1" value="6"
+                oninput="syncSlider('tScreen','tScreenVal',v=>v+' hrs')" />
+            </div>
+          </div>
+
+          <button class="btn-track" onclick="addWeeklyEntry()">📊 Update &amp; Recalculate</button>
+          <button class="btn btn-outline" style="width:100%; margin-top:10px; justify-content:center;"
+            onclick="clearHistory()">Clear History</button>
+        </div>
+
+        <!-- Right: chart + history -->
+        <div class="tracker-right">
+          <div class="chart-card">
+            <h3>Risk Score Trend</h3>
+            <div class="chart-container">
+              <canvas id="trendCanvas"></canvas>
+            </div>
+          </div>
+
+          <div class="history-card">
+            <h3>Assessment History</h3>
+            <div class="history-entries" id="historyEntries">
+              <div class="empty-tracker">
+                <div class="et-icon">📋</div>
+                <p>No entries yet. Complete an assessment first,<br />then update weekly here.</p>
+                <button class="btn btn-accent" onclick="nav('assess')">Start Assessment →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+     PAGE: ABOUT
+════════════════════════════════════ -->
+  <div id="page-about" class="page">
+    <div class="about-wrap">
+      <div class="page-header">
+        <div class="sec-label">About VitaGuard AI</div>
+        <h1>Prevention Over<br />Prescription</h1>
+        <p>Built for students, working professionals, and sedentary individuals — anyone who wants to get ahead of
+          lifestyle disease before it starts.</p>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <h3>🎯 The Problem We Solve</h3>
+          <p>Most health apps track fitness after the fact. VitaGuard AI acts before disease manifests — catching risk
+            in the lifestyle stage, not the clinical one. Most people only act after diagnosis. We help you act today.
+          </p>
+        </div>
+        <div class="about-card">
+          <h3>💡 Key Innovations</h3>
+          <p>Quantified 0–10 risk score, explainable factor breakdown, dynamic personalized prevention plans, weekly
+            improvement tracking, and zero dependency on hospital data or hardware.</p>
+        </div>
+        <div class="about-card" style="grid-column:1/-1">
+          <h3>⚙️ Risk Calculation Formula</h3>
+          <p style="margin-bottom:16px">Each lifestyle factor is assigned a weight. Your total weighted score is
+            normalized to a 0–10 scale.</p>
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>Factor</th>
+                <th>Condition</th>
+                <th>Weight</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BMI</td>
+                <td>BMI &gt; 30 (Obese)</td>
+                <td class="pts">+2.0</td>
+              </tr>
+              <tr>
+                <td>BMI</td>
+                <td>BMI 27–30 (Overweight)</td>
+                <td class="pts">+1.5</td>
+              </tr>
+              <tr>
+                <td>Sleep</td>
+                <td>&lt; 6 hours/night</td>
+                <td class="pts">+1.5</td>
+              </tr>
+              <tr>
+                <td>Exercise</td>
+                <td>&lt; 2 days/week</td>
+                <td class="pts">+1.5</td>
+              </tr>
+              <tr>
+                <td>Family History</td>
+                <td>Multiple conditions</td>
+                <td class="pts">+2.0</td>
+              </tr>
+              <tr>
+                <td>Family History</td>
+                <td>Any single condition</td>
+                <td class="pts">+1.5</td>
+              </tr>
+              <tr>
+                <td>Stress</td>
+                <td>&gt; 7 / 10</td>
+                <td class="pts">+1.0</td>
+              </tr>
+              <tr>
+                <td>Screen Time</td>
+                <td>&gt; 8 hours/day</td>
+                <td class="pts">+1.0</td>
+              </tr>
+              <tr>
+                <td>Diet</td>
+                <td>Fast food / irregular</td>
+                <td class="pts">+1.0</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin-top:16px; color:var(--muted); font-size:.85rem"><strong
+              style="color:var(--ink)">Formula:</strong> Final Score = (Total Points / Max Possible Points) × 10</p>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <strong>⚠️ Disclaimer:</strong> VitaGuard AI is a lifestyle decision-support and preventive monitoring tool
+        only. It is not a substitute for professional medical advice, diagnosis, or treatment. The risk scores generated
+        are based on lifestyle data and general population statistics. Always consult a qualified healthcare
+        professional for personal medical guidance.
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════
+     JAVASCRIPT
+════════════════════ -->
+  <script>
+    /* ══════════════════════════════════
+       STATE & NAVIGATION
+    ══════════════════════════════════ */
+    const pages = ['home', 'assess', 'results', 'tracker', 'about'];
+    let radarInst = null, trendInst = null;
+    let lastData = null;
+
+    function nav(id) {
+      pages.forEach(p => {
+        document.getElementById('page-' + p).classList.toggle('active', p === id);
+        const nb = document.getElementById('nb-' + p);
+        if (nb) nb.classList.toggle('active', p === id);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const prog = document.getElementById('chatProgress');
+      if (id === 'assess') {
+        prog.style.display = 'block';
+        initChat();
+      } else {
+        prog.style.display = 'none';
+      }
+      if (id === 'tracker') renderTracker();
+    }
+
+    /* ══════════════════════════════════
+       SLIDER HELPERS (tracker)
+    ══════════════════════════════════ */
+    function syncSlider(id, valId, fmt) {
+      const el = document.getElementById(id);
+      const v = parseFloat(el.value);
+      document.getElementById(valId).textContent = fmt(v);
+      const min = +el.min, max = +el.max;
+      const pct = ((v - min) / (max - min)) * 100;
+      el.style.setProperty('--pct', pct + '%');
+      el.style.backgroundSize = pct + '% 100%';
+    }
+
+    ['tSleep', 'tExercise', 'tStress', 'tScreen'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const min = +el.min, max = +el.max, val = +el.value;
+      const pct = ((val - min) / (max - min) * 100);
+      el.style.setProperty('--pct', pct + '%');
+      el.style.backgroundSize = pct + '% 100%';
+    });
+
+    /* ══════════════════════════════════
+       CHAT ENGINE
+    ══════════════════════════════════ */
+    let chatData = {};
+    let chatStep = 0;
+    let chatAnswered = false;
+
+    const STEPS = [
+      {
+        key: 'greeting',
+        bot: "Hey there! 👋 I'm VitaGuard AI. I'm going to ask you a few quick questions about your lifestyle to calculate your personal health risk score.\n\nReady to begin?",
+        type: 'choices',
+        choices: ["Let's go! 🚀", "Sure, I'm ready"],
+        next: () => 1,
+        skipRecord: true,
+      },
+      {
+        key: 'age',
+        bot: "Great! Let's start with the basics.\n\nHow old are you?",
+        type: 'number',
+        placeholder: 'Enter age',
+        min: 10, max: 100,
+        suffix: ' years old',
+        followup: (v) => `Got it — ${v} years old. 👍`,
+        validate: (v) => v >= 10 && v <= 100 ? null : 'Please enter a valid age between 10 and 100.',
+        next: () => 2,
+      },
+      {
+        key: 'gender',
+        bot: (d) => `Thanks! And what's your gender? This helps me give you more accurate context.`,
+        type: 'choices',
+        choices: ['Male', 'Female', 'Other / Prefer not to say'],
+        choiceValues: ['male', 'female', 'other'],
+        followup: (v) => `Noted. ✅`,
+        next: () => 3,
+      },
+      {
+        key: 'height_weight',
+        bot: "Now let's get your physical stats. What's your height and weight? I'll use these to calculate your BMI.",
+        type: 'height_weight',
+        followup: (v) => {
+          const bmi = (v.weight / ((v.height / 100) ** 2)).toFixed(1);
+          const cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal weight' : bmi < 30 ? 'Overweight' : 'Obese';
+          const cls = bmi > 30 ? 'danger' : bmi > 27 ? 'warn' : 'ok';
+          return `Height: ${v.height} cm, Weight: ${v.weight} kg<br/><span class="bmi-badge ${cls}">⚖️ BMI ${bmi} — ${cat}</span>`;
+        },
+        next: () => 4,
+      },
+      {
+        key: 'sleep',
+        bot: "How many hours of sleep do you get on average per night?",
+        type: 'slider',
+        min: 2, max: 12, step: 0.5, default: 7,
+        fmt: v => `${v} hrs / night`,
+        followup: (v) => v < 6 ? `Only ${v} hours? That's quite low — sleep is crucial for health. 😴` : v >= 8 ? `${v} hours — excellent sleep habits! 🌙` : `${v} hours — decent, but aim for 7–8 ideally. 😴`,
+        next: () => 5,
+      },
+      {
+        key: 'exercise',
+        bot: "How many days per week do you exercise or do any physical activity? (Even a brisk walk counts!)",
+        type: 'slider',
+        min: 0, max: 7, step: 1, default: 3,
+        fmt: v => v == 1 ? `${v} day / week` : `${v} days / week`,
+        followup: (v) => v < 2 ? `${v} days — a more active routine would help a lot. 🏃` : v >= 5 ? `${v} days — that's impressive dedication! 💪` : `${v} days — a solid start! 🏃`,
+        next: () => 6,
+      },
+      {
+        key: 'screen',
+        bot: "How many hours per day do you spend on screens? (Phone, laptop, TV — all combined.)",
+        type: 'slider',
+        min: 0, max: 16, step: 1, default: 6,
+        fmt: v => v == 1 ? `${v} hr / day` : `${v} hrs / day`,
+        followup: (v) => v > 8 ? `${v} hours is quite high — prolonged screen exposure affects sleep and posture. 📱` : `${v} hours — that's manageable. 📱`,
+        next: () => 7,
+      },
+      {
+        key: 'stress',
+        bot: "On a scale of 1 to 10, how would you rate your average stress level? (1 = very calm, 10 = extremely stressed)",
+        type: 'slider',
+        min: 1, max: 10, step: 1, default: 5,
+        fmt: v => {
+          const labels = ['', 'Very calm', 'Low', 'Below average', 'Mild', 'Moderate', 'Noticeable', 'High', 'Very high', 'Intense', 'Extreme'];
+          return `${v}/10 — ${labels[v] || ''}`;
+        },
+        followup: (v) => v > 7 ? `${v}/10 — high stress is a significant health risk. Let's keep that in mind. 🧠` : v > 5 ? `${v}/10 — moderate stress. Manageable, but worth watching. 🧠` : `${v}/10 — great, you seem fairly calm. 🧘`,
+        next: () => 8,
+      },
+      {
+        key: 'diet',
+        bot: "How would you describe your typical diet?",
+        type: 'choices',
+        choices: ['Balanced & Healthy 🥗', 'Vegetarian 🌱', 'Vegan 🌿', 'Mostly Fast Food 🍔', 'Mixed / Irregular 🍱'],
+        choiceValues: ['balanced', 'vegetarian', 'vegan', 'fastfood', 'mixed'],
+        followup: (v) => {
+          const msgs = {
+            balanced: 'A balanced diet is a strong foundation — great choice! 🥗',
+            vegetarian: 'Vegetarian diets are linked to lower disease risk. 🌱',
+            vegan: 'Vegan diets are excellent for heart health. 🌿',
+            fastfood: 'Fast food is a risk factor — but we can work on that together. 🍔',
+            mixed: 'Irregular eating patterns can affect metabolism. Let\'s note that. 🍱',
+          };
+          return msgs[v] || 'Got it!';
+        },
+        next: () => 9,
+      },
+      {
+        key: 'family_history',
+        bot: "Does anyone in your immediate family (parents, siblings) have a history of any of these conditions?",
+        type: 'multiselect',
+        choices: ['Type 2 Diabetes', 'Hypertension', 'Heart Disease', 'Obesity', 'None of these'],
+        noneValue: 'None of these',
+        followup: (v) => {
+          if (v.length === 0 || (v.length === 1 && v[0] === 'None of these')) return 'No family history noted — good to know! 🧬';
+          return `Family history of: ${v.filter(x => x !== 'None of these').join(', ')}. This is important context for your risk profile. 🧬`;
+        },
+        next: () => 10,
+      },
+      // Add after the existing questions, before the 'submit' step:
+      {
+        key: 'highBP',
+        type: 'choices',
+        bot: "Has a doctor ever told you that you have high blood pressure?",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: v => v === 1 ? "Noted. High blood pressure is an important risk factor." : "Good to know!",
+        next: () => 11,
+      },
+      {
+        key: 'highChol',
+        type: 'choices',
+        bot: "Have you ever been told you have high cholesterol?",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: null,
+        next: () => 12,
+      },
+      {
+        key: 'smoker',
+        type: 'choices',
+        bot: "Have you smoked at least 100 cigarettes in your entire life?",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: null,
+        next: () => 13,
+      },
+      {
+        key: 'fruits',
+        type: 'choices',
+        bot: "Do you consume fruit at least once per day?",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: null,
+        next: () => 14,
+      },
+      {
+        key: 'veggies',
+        type: 'choices',
+        bot: "Do you consume vegetables at least once per day?",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: null,
+        next: () => 15,
+      },
+      {
+        key: 'genHlth',
+        type: 'choices',
+        bot: "How would you rate your general health?",
+        choices: ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'],
+        choiceValues: [1, 2, 3, 4, 5],
+        followup: null,
+        next: () => 16,
+      },
+      {
+        key: 'diffWalk',
+        type: 'choices',
+        bot: "Do you have serious difficulty walking or climbing stairs?",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: null,
+        next: () => 17,
+      },
+      {
+        key: 'hvyAlcohol',
+        type: 'choices',
+        bot: "Are you a heavy drinker? (Men: 14+ drinks/week, Women: 7+ drinks/week)",
+        choices: ['Yes', 'No'],
+        choiceValues: [1, 0],
+        followup: null,
+        next: () => 18,
+      },
+      {
+        key: 'submit',
+        bot: (d) => {
+          const name = d.gender === 'male' ? 'friend' : d.gender === 'female' ? 'friend' : 'friend';
+          return `Perfect — that's everything I need, ${name}! 🎉\n\nI have all your lifestyle data. Ready to see your personalized health risk score?`;
+        },
+        type: 'submit',
+        next: () => -1,
+      },
+    ];
+
+    function initChat() {
+      chatData = {};
+      chatStep = 0;
+      chatAnswered = false;
+      document.getElementById('chatThread').innerHTML = '';
+      document.getElementById('chatInputInner').innerHTML = '';
+      updateProgress(0);
+      setTimeout(() => showStep(0), 300);
+    }
+
+    function updateProgress(step) {
+      const pct = Math.round((step / (STEPS.length - 1)) * 100);
+      document.getElementById('chatProgressFill').style.width = pct + '%';
+    }
+
+    function showStep(idx) {
+      const step = STEPS[idx];
+      if (!step) return;
+
+      showTyping(() => {
+        const botText = typeof step.bot === 'function' ? step.bot(chatData) : step.bot;
+        addBotMessage(botText);
+        renderInput(step, idx);
+        updateProgress(idx);
+        scrollChat();
+      });
+    }
+
+    function showTyping(cb, delay = 800) {
+      const thread = document.getElementById('chatThread');
+      const typing = document.createElement('div');
+      typing.className = 'msg-bot typing-indicator';
+      typing.id = 'typingEl';
+      typing.innerHTML = `
+    <div class="bot-avatar">V</div>
+    <div class="typing-dots">
+      <span></span><span></span><span></span>
+    </div>`;
+      thread.appendChild(typing);
+      scrollChat();
+      setTimeout(() => {
+        const el = document.getElementById('typingEl');
+        if (el) el.remove();
+        cb();
+      }, delay);
+    }
+
+    function addBotMessage(text) {
+      const thread = document.getElementById('chatThread');
+      const msg = document.createElement('div');
+      msg.className = 'msg-bot';
+      msg.innerHTML = `
+    <div class="bot-avatar">V</div>
+    <div class="bot-bubble">${text.replace(/\n/g, '<br/>')}</div>`;
+      thread.appendChild(msg);
+    }
+
+    function addUserMessage(html) {
+      const thread = document.getElementById('chatThread');
+      const msg = document.createElement('div');
+      msg.className = 'msg-user';
+      msg.innerHTML = `<div class="user-bubble">${html}</div>`;
+      thread.appendChild(msg);
+    }
+
+    function scrollChat() {
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 50);
+    }
+
+    function renderInput(step, idx) {
+      const area = document.getElementById('chatInputInner');
+      area.innerHTML = '';
+
+      if (step.type === 'choices') {
+        const grid = document.createElement('div');
+        grid.className = 'option-grid';
+        step.choices.forEach((label, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'opt-btn';
+          btn.textContent = label;
+          btn.onclick = () => {
+            if (chatAnswered) return;
+            const value = step.choiceValues ? step.choiceValues[i] : label;
+            if (!step.skipRecord) chatData[step.key] = value;
+            recordAndAdvance(step, idx, label);
+          };
+          grid.appendChild(btn);
+        });
+        area.appendChild(grid);
+      }
+
+      else if (step.type === 'number') {
+        const row = document.createElement('div');
+        row.className = 'num-input-row';
+        row.innerHTML = `
+      <input type="number" id="chatNumInput" min="${step.min}" max="${step.max}" placeholder="${step.placeholder}" autofocus/>
+      <button class="send-btn" onclick="submitNumber(${idx})">Continue →</button>`;
+        area.appendChild(row);
+        setTimeout(() => { const el = document.getElementById('chatNumInput'); if (el) el.focus(); }, 100);
+        document.getElementById('chatNumInput').addEventListener('keydown', e => {
+          if (e.key === 'Enter') submitNumber(idx);
+        });
+      }
+
+      else if (step.type === 'slider') {
+        const wrap = document.createElement('div');
+        wrap.className = 'slider-chat-wrap';
+        const pct = ((step.default - step.min) / (step.max - step.min)) * 100;
+        wrap.innerHTML = `
+      <div class="slider-chat-header">
+        <span class="slider-chat-label">${step.min} — ${step.max}</span>
+        <span class="slider-chat-val" id="chatSliderVal">${step.fmt(step.default)}</span>
+      </div>
+      <input type="range" id="chatSlider" min="${step.min}" max="${step.max}" step="${step.step}" value="${step.default}"
+        style="--pct:${pct}%"
+        oninput="updateChatSlider(this, ${JSON.stringify(step.min)}, ${JSON.stringify(step.max)}, 'chatSliderVal', ${idx})"/>
+      <button class="confirm-btn" onclick="submitSlider(${idx})">Confirm →</button>`;
+        area.appendChild(wrap);
+      }
+
+      else if (step.type === 'height_weight') {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.flexDirection = 'column';
+        wrap.style.gap = '10px';
+        wrap.innerHTML = `
+      <div class="num-input-row">
+        <input type="number" id="chatHeight" min="100" max="250" placeholder="Height (cm)" style="max-width:160px"/>
+        <input type="number" id="chatWeight" min="20" max="300" placeholder="Weight (kg)" style="max-width:160px"/>
+        <button class="send-btn" onclick="submitHeightWeight(${idx})">Continue →</button>
+      </div>`;
+        area.appendChild(wrap);
+        setTimeout(() => { const el = document.getElementById('chatHeight'); if (el) el.focus(); }, 100);
+      }
+
+      else if (step.type === 'multiselect') {
+        const wrap = document.createElement('div');
+        const hint = document.createElement('div');
+        hint.className = 'multi-hint';
+        hint.textContent = 'Select all that apply, then tap Confirm';
+        wrap.appendChild(hint);
+
+        const grid = document.createElement('div');
+        grid.className = 'option-grid';
+        step.choices.forEach((label, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'opt-btn';
+          btn.textContent = label;
+          btn.dataset.value = label;
+          btn.onclick = () => {
+            if (label === step.noneValue) {
+              // Deselect all others
+              grid.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+              btn.classList.toggle('selected');
+            } else {
+              // Deselect "None"
+              const noneBtn = [...grid.querySelectorAll('.opt-btn')].find(b => b.dataset.value === step.noneValue);
+              if (noneBtn) noneBtn.classList.remove('selected');
+              btn.classList.toggle('selected');
+            }
+          };
+          grid.appendChild(btn);
+        });
+        wrap.appendChild(grid);
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'confirm-btn';
+        confirmBtn.style.marginTop = '12px';
+        confirmBtn.textContent = 'Confirm →';
+        confirmBtn.onclick = () => {
+          const selected = [...grid.querySelectorAll('.opt-btn.selected')].map(b => b.dataset.value);
+          if (selected.length === 0) {
+            alert('Please select at least one option, or choose "None of these".');
+            return;
+          }
+          chatData[step.key] = selected;
+          const display = selected.join(', ');
+          recordAndAdvance(step, idx, display);
+        };
+        wrap.appendChild(confirmBtn);
+        area.appendChild(wrap);
+      }
+
+      else if (step.type === 'submit') {
+        const btn = document.createElement('button');
+        btn.className = 'confirm-btn';
+        btn.style.width = '100%';
+        btn.style.padding = '14px 28px';
+        btn.style.fontSize = '1rem';
+        btn.textContent = '⚡ Calculate My Risk Score';
+        btn.onclick = () => {
+          if (chatAnswered) return;
+          chatAnswered = true;
+          area.innerHTML = '';
+          addUserMessage("Yes, show me my results!");
+          finalizeAssessment();
+        };
+        area.appendChild(btn);
+      }
+    }
+
+    function updateChatSlider(el, min, max, valId, idx) {
+      const step = STEPS[idx];
+      const v = parseFloat(el.value);
+      document.getElementById(valId).textContent = step.fmt(v);
+      const pct = ((v - min) / (max - min)) * 100;
+      el.style.setProperty('--pct', pct + '%');
+    }
+
+    function submitNumber(idx) {
+      if (chatAnswered) return;
+      const step = STEPS[idx];
+      const input = document.getElementById('chatNumInput');
+      const v = parseFloat(input.value);
+      const err = step.validate ? step.validate(v) : null;
+      if (isNaN(v) || err) {
+        input.style.borderColor = 'var(--danger)';
+        input.placeholder = err || 'Please enter a valid number';
+        setTimeout(() => { input.style.borderColor = ''; }, 1500);
+        return;
+      }
+      chatData[step.key] = v;
+      const display = step.suffix ? `${v}${step.suffix}` : String(v);
+      recordAndAdvance(step, idx, display);
+    }
+
+    function submitSlider(idx) {
+      if (chatAnswered) return;
+      const step = STEPS[idx];
+      const v = parseFloat(document.getElementById('chatSlider').value);
+      chatData[step.key] = v;
+      const display = step.fmt(v);
+      recordAndAdvance(step, idx, display);
+    }
+
+    function submitHeightWeight(idx) {
+      if (chatAnswered) return;
+      const h = parseFloat(document.getElementById('chatHeight').value);
+      const w = parseFloat(document.getElementById('chatWeight').value);
+      if (isNaN(h) || h < 100 || h > 250) {
+        document.getElementById('chatHeight').style.borderColor = 'var(--danger)';
+        setTimeout(() => { document.getElementById('chatHeight').style.borderColor = ''; }, 1500);
+        return;
+      }
+      if (isNaN(w) || w < 20 || w > 300) {
+        document.getElementById('chatWeight').style.borderColor = 'var(--danger)';
+        setTimeout(() => { document.getElementById('chatWeight').style.borderColor = ''; }, 1500);
+        return;
+      }
+      const step = STEPS[idx];
+      chatData.height = h;
+      chatData.weight = w;
+      const display = step.followup({ height: h, weight: w });
+      chatAnswered = true;
+      document.getElementById('chatInputInner').innerHTML = '';
+      addUserMessage(`Height: ${h} cm, Weight: ${w} kg`);
+      showTyping(() => {
+        addBotMessage(display);
+        chatAnswered = false;
+        const next = step.next();
+        if (next >= 0 && next < STEPS.length) {
+          setTimeout(() => showStep(next), 400);
+        }
+        scrollChat();
+      }, 600);
+    }
+
+    function recordAndAdvance(step, idx, displayText) {
+      chatAnswered = true;
+      document.getElementById('chatInputInner').innerHTML = '';
+
+      addUserMessage(displayText);
+
+      const followup = step.followup ? (typeof step.followup === 'function' ? step.followup(chatData[step.key]) : step.followup) : null;
+
+      if (followup) {
+        showTyping(() => {
+          addBotMessage(followup);
+          chatAnswered = false;
+          const next = step.next();
+          if (next >= 0 && next < STEPS.length) {
+            setTimeout(() => showStep(next), 400);
+          }
+          scrollChat();
+        }, 600);
+      } else {
+        chatAnswered = false;
+        const next = step.next();
+        if (next >= 0 && next < STEPS.length) {
+          setTimeout(() => showStep(next), 300);
+        }
+      }
+      scrollChat();
+    }
+
+    function finalizeAssessment() {
+      const d = chatData;
+
+      const fh = d.family_history || [];
+      const fhCount = fh.filter(x => x !== 'None of these').length;
+
+      const data = {
+        age: d.age || 25,
+        height: d.height || 170,
+        weight: d.weight || 70,
+        sleep: d.sleep || 7,
+        exercise: d.exercise || 3,
+        screen: d.screen || 6,
+        stress: d.stress || 5,
+        diet: d.diet || 'mixed',
+        fhCount,
+        gender: d.gender || 'other',
+      };
+
+      lastData = data;
+      document.getElementById('loader').classList.add('show');
+
+      // Build the payload for the ML model
+      const bmi = data.weight / ((data.height / 100) ** 2);
+
+      // Map age (raw years) to BRFSS age category 1–13
+      function toAgeCategory(age) {
+        if (age < 25) return 1;
+        if (age < 30) return 2;
+        if (age < 35) return 3;
+        if (age < 40) return 4;
+        if (age < 45) return 5;
+        if (age < 50) return 6;
+        if (age < 55) return 7;
+        if (age < 60) return 8;
+        if (age < 65) return 9;
+        if (age < 70) return 10;
+        if (age < 75) return 11;
+        if (age < 80) return 12;
+        return 13;
+      }
+
+      const payload = {
+        HighBP: d.highBP ?? 0,
+        HighChol: d.highChol ?? 0,
+        BMI: parseFloat(bmi.toFixed(1)),
+        Smoker: d.smoker ?? 0,
+        PhysActivity: d.exercise >= 3 ? 1 : 0,   // 3+ days/week → active
+        Fruits: d.fruits ?? 1,
+        Veggies: d.veggies ?? 1,
+        HvyAlcoholConsump: d.hvyAlcohol ?? 0,
+        GenHlth: d.genHlth ?? 3,
+        MentHlth: Math.round(d.stress * 3),   // stress 0–10 → 0–30 days
+        PhysHlth: 0,                          // default; add question if needed
+        DiffWalk: d.diffWalk ?? 0,
+        Sex: d.gender === 'male' ? 1 : 0,
+        Age: toAgeCategory(d.age),
+        Education: 4,                          // default: some college
+        Income: 5,                          // default: middle income
+      };
+
+      fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(result => {
+          document.getElementById('loader').classList.remove('show');
+
+          // Read all 5 ML scores (already scaled 0–10 by app.py)
+          const scores = {
+            diabetes: parseFloat((result.diabetes ?? result.risk_probability * 10).toFixed(1)),
+            heart:    parseFloat((result.heart    ?? 0).toFixed(1)),
+            bp:       parseFloat((result.bp       ?? 0).toFixed(1)),
+            stroke:   parseFloat((result.stroke   ?? 0).toFixed(1)),
+            obesity:  parseFloat((result.obesity  ?? 0).toFixed(1)),
+          };
+
+          // Blend all 5 ML scores with equal weight → overall ML score
+          const mlOverall = parseFloat(((scores.diabetes + scores.heart + scores.bp + scores.stroke + scores.obesity) / 5).toFixed(1));
+
+          // Keep rule-based factors for the breakdown bars
+          const { score: ruleScore, factors } = calcRisk(data);
+
+          // Final blended score: 60% ML overall + 40% rule-based lifestyle
+          const blendedScore = parseFloat(((mlOverall * 0.6) + (ruleScore * 0.4)).toFixed(1));
+          const recs = getRecs(data, factors, bmi);
+
+          renderResultsInChat(blendedScore, scores, factors, recs, data, bmi);
+          saveEntry(blendedScore, data);
+        })
+        .catch(err => {
+          console.error('ML model error:', err);
+          // Graceful fallback: pure rule-based
+          document.getElementById('loader').classList.remove('show');
+          const { score, factors, bmi: b } = calcRisk(data);
+          const recs = getRecs(data, factors, b);
+          // Pass null scores so renderResultsInChat shows fallback state
+          renderResultsInChat(score, null, factors, recs, data, b);
+          saveEntry(score, data);
+        });
+    }
+
+    function restartChat() {
+      nav('assess');
+    }
+
+    /* ══════════════════════════════════
+       RENDER RESULTS INSIDE CHAT THREAD
+    ══════════════════════════════════ */
+    function renderResultsInChat(score, scores, factors, recs, data, bmi) {
+      // Clear the fixed input area
+      document.getElementById('chatInputInner').innerHTML = '';
+      document.getElementById('chatProgress').style.display = 'none';
+
+      let cat, catCls, title, desc, c1, c2;
+      if (score <= 3) {
+        cat = '🟢 Low Risk'; catCls = 'low';
+        title = 'Your Overall Risk is Low'; c1 = '#1a7a5e'; c2 = '#2ea87a';
+        desc = 'Your lifestyle habits are largely healthy. A few optimizations could reduce risk further and protect long-term wellness.';
+      } else if (score <= 6) {
+        cat = '🟡 Moderate Risk'; catCls = 'mod';
+        title = 'Moderate Risk Detected'; c1 = '#d4870a'; c2 = '#f0a732';
+        desc = 'Your lifestyle patterns have some areas of concern. Following the recommendations below can significantly lower your risk within weeks.';
+      } else {
+        cat = '🔴 High Risk'; catCls = 'high';
+        title = 'High Risk — Action Needed'; c1 = '#c0392b'; c2 = '#e74c3c';
+        desc = 'Multiple lifestyle factors are contributing to elevated disease risk. Prioritizing the recommendations below is critical for your long-term health.';
+      }
+
+      // Step 1: Bot intro message
+      showTyping(() => {
+        addBotMessage(`Analysis complete! Here's your full health risk report. I'll walk you through it step by step. 🩺`);
+        scrollChat();
+
+        // Step 2: Disease-by-disease breakdown card (NEW)
+        setTimeout(() => {
+          showTyping(() => {
+            if (scores) {
+              addBotMessage(`First, here's how each disease risk looks individually:`);
+              setTimeout(() => {
+                addChatResultCard('diseases', { scores });
+                scrollChat();
+
+                // Step 3: Overall blended score card
+                setTimeout(() => {
+                  showTyping(() => {
+                    addBotMessage(`And here's your overall blended health risk score — combining all 5 models:`);
+                    setTimeout(() => {
+                      addChatResultCard('score', { score, catCls, cat, title, desc, data, bmi, c1, c2 });
+                      scrollChat();
+                      showFactorsStep(factors, data, recs, bmi, c1);
+                    }, 400);
+                    scrollChat();
+                  }, 900);
+                }, 600);
+              }, 400);
+            } else {
+              // Fallback: no ML scores, show overall only
+              addChatResultCard('score', { score, catCls, cat, title, desc, data, bmi, c1, c2 });
+              scrollChat();
+              showFactorsStep(factors, data, recs, bmi, c1);
+            }
+            scrollChat();
+          }, 900);
+        }, 400);
+      }, 900);
+    }
+
+    function showFactorsStep(factors, data, recs, bmi, c1) {
+      // Step 4: Factor breakdown
+      setTimeout(() => {
+        if (factors.length > 0) {
+          showTyping(() => {
+            addBotMessage(`Here's exactly what's driving your score — your personal risk factor breakdown:`);
+            setTimeout(() => {
+              addChatResultCard('factors', { factors });
+              scrollChat();
+              showRadarStep(data, recs, bmi, c1);
+            }, 400);
+            scrollChat();
+          }, 700);
+        } else {
+          addBotMessage('No significant risk factors were detected — excellent lifestyle habits! 🎉');
+          showRadarStep(data, recs, bmi, c1);
+        }
+      }, 600);
+    }
+
+    function showRadarStep(data, recs, bmi, c1) {
+      setTimeout(() => {
+        showTyping(() => {
+          addBotMessage(`And here's your lifestyle radar — a visual snapshot of all five health dimensions:`);
+          setTimeout(() => {
+            addChatResultCard('radar', { data, bmi, c1 });
+            scrollChat();
+
+            // Final: Prevention plan
+            setTimeout(() => {
+              showTyping(() => {
+                addBotMessage(`Based on your profile, I've put together a personalized prevention plan just for you:`);
+                setTimeout(() => {
+                  addChatResultCard('plan', { recs });
+                  scrollChat();
+
+                  // Actions
+                  setTimeout(() => {
+                    showTyping(() => {
+                      addChatResultCard('actions', {});
+                      scrollChat();
+                    }, 600);
+                  }, 400);
+                }, 400);
+              }, 800);
+            }, 600);
+          }, 400);
+        }, 900);
+      }, 600);
+    }
+
+    function addChatResultCard(type, payload) {
+      const thread = document.getElementById('chatThread');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-bot-full';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'bot-avatar';
+      avatar.textContent = 'V';
+
+      const card = document.createElement('div');
+      card.className = 'chat-result-card';
+
+      if (type === 'diseases') {
+        const { scores } = payload;
+        // Helper: colour for a 0-10 score
+        function diseaseColour(s) {
+          return s <= 3 ? { c1: '#1a7a5e', c2: '#2ea87a', cls: 'low', lbl: '🟢 Low' }
+               : s <= 6 ? { c1: '#d4870a', c2: '#f0a732', cls: 'mod', lbl: '🟡 Moderate' }
+                        : { c1: '#c0392b', c2: '#e74c3c', cls: 'high', lbl: '🔴 High' };
+        }
+        const diseases = [
+          { key: 'diabetes', label: 'Diabetes Risk',      score: scores.diabetes },
+          { key: 'heart',    label: 'Heart Disease Risk', score: scores.heart    },
+          { key: 'bp',       label: 'Hypertension Risk',  score: scores.bp       },
+          { key: 'stroke',   label: 'Stroke Risk',        score: scores.stroke   },
+          { key: 'obesity',  label: 'Obesity Risk',       score: scores.obesity  },
+        ];
+        const circ = 170; // 2π × 27
+        const ts = Date.now();
+        const dialIds = diseases.map((d, i) => 'dDial_' + ts + '_' + i);
+
+        // 5 cards in a 2-col grid; obesity (index 4) spans full row
+        const cardsHtml = diseases.map((d, i) => {
+          const col = diseaseColour(d.score);
+          const offset = circ - (d.score / 10) * circ;
+          const gId = 'dg_' + ts + '_' + i;
+          const isLast = i === 4;
+          return `
+          <div class="disease-card${isLast ? ' full-row' : ''}">
+            <div class="dc-mini-dial">
+              <svg viewBox="0 0 60 60">
+                <defs>
+                  <linearGradient id="${gId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="${col.c1}"/>
+                    <stop offset="100%" stop-color="${col.c2}"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="30" cy="30" r="27" fill="none" stroke="var(--bg2)" stroke-width="5"/>
+                <circle id="${dialIds[i]}" cx="30" cy="30" r="27" fill="none"
+                  stroke="url(#${gId})" stroke-width="5" stroke-linecap="round"
+                  stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+                  style="transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);transform:rotate(-90deg);transform-origin:30px 30px"/>
+              </svg>
+              <div class="dc-dial-center">
+                <div class="dc-dial-num" style="color:${col.c1}">${d.score.toFixed(1)}</div>
+                <div class="dc-dial-denom">/10</div>
+              </div>
+            </div>
+            <div class="dc-info">
+              <div class="dc-label">${d.label}</div>
+              <span class="dc-pill ${col.cls}">${col.lbl}</span>
+            </div>
+          </div>`;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="crc-section-label">Disease-by-Disease Breakdown</div>
+          <div class="disease-grid">${cardsHtml}</div>`;
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(card);
+        thread.appendChild(wrapper);
+        // Animate all dials after render
+        setTimeout(() => {
+          diseases.forEach((d, i) => {
+            const col = diseaseColour(d.score);
+            const offset = circ - (d.score / 10) * circ;
+            const el = document.getElementById(dialIds[i]);
+            if (el) el.style.strokeDashoffset = offset;
+          });
+        }, 200);
+        return;
+      }
+
+      if (type === 'score') {
+        const { score, catCls, cat, title, desc, data, bmi, c1, c2 } = payload;
+        const circ = 302; // 2π × 48
+        const offset = circ - (score / 10) * circ;
+        const dialId = 'chatDial_' + Date.now();
+        card.innerHTML = `
+      <div class="crc-section-label">Overall Blended Score</div>
+      <div class="crc-score-hero">
+        <div class="crc-dial-wrap">
+          <svg viewBox="0 0 120 120">
+            <defs>
+              <linearGradient id="cg_${dialId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="${c1}"/>
+                <stop offset="100%" stop-color="${c2}"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="var(--bg2)" stroke-width="9"/>
+            <circle id="${dialId}" cx="60" cy="60" r="48" fill="none"
+              stroke="url(#cg_${dialId})" stroke-width="9" stroke-linecap="round"
+              stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+              style="transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1); transform:rotate(-90deg); transform-origin:60px 60px"/>
+          </svg>
+          <div class="crc-dial-center">
+            <div class="crc-dial-num" style="color:${c1}">${score.toFixed(1)}</div>
+            <div class="crc-dial-denom">/10</div>
+          </div>
+        </div>
+        <div class="crc-score-info">
+          <h3>${title}</h3>
+          <p>${desc}</p>
+          <span class="crc-risk-pill ${catCls}">${cat}</span>
+          <div class="crc-stats">
+            <div class="crc-stat"><span>Age</span><strong>${data.age} yrs</strong></div>
+            <div class="crc-stat"><span>BMI</span><strong>${bmi.toFixed(1)}</strong></div>
+            <div class="crc-stat"><span>Sleep</span><strong>${data.sleep}h</strong></div>
+            <div class="crc-stat"><span>Exercise</span><strong>${data.exercise}d/wk</strong></div>
+          </div>
+        </div>
+      </div>`;
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(card);
+        thread.appendChild(wrapper);
+        setTimeout(() => {
+          const el = document.getElementById(dialId);
+          if (el) el.style.strokeDashoffset = offset;
+        }, 200);
+        return;
+      }
+
+      if (type === 'factors') {
+        const { factors } = payload;
+        const maxPts = Math.max(...factors.map(f => f.pts), 1);
+        card.innerHTML = `
+      <div class="crc-section-label">Risk Factor Breakdown</div>
+      ${factors.map(f => `
+        <div class="crc-factor-row">
+          <div class="crc-factor-meta">
+            <span class="crc-factor-name">${f.icon} ${f.name}</span>
+            <span class="crc-factor-pts">+${f.pts.toFixed(1)} pts</span>
+          </div>
+          <div class="crc-factor-track">
+            <div class="crc-factor-fill" style="width:0%" data-target="${(f.pts / maxPts) * 100}%"></div>
+          </div>
+        </div>`).join('')}`;
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(card);
+        thread.appendChild(wrapper);
+        setTimeout(() => {
+          card.querySelectorAll('.crc-factor-fill').forEach(el => {
+            el.style.width = el.dataset.target;
+          });
+        }, 150);
+        return;
+      }
+
+      if (type === 'radar') {
+        const { data, bmi, c1 } = payload;
+        const canvasId = 'chatRadar_' + Date.now();
+        card.innerHTML = `
+      <div class="crc-section-label">Lifestyle Radar</div>
+      <div class="crc-radar-wrap">
+        <canvas id="${canvasId}" width="260" height="260"></canvas>
+      </div>`;
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(card);
+        thread.appendChild(wrapper);
+        setTimeout(() => {
+          const bmiScore = Math.min(bmi > 30 ? 9 : bmi > 27 ? 6 : bmi > 25 ? 3 : 1, 10);
+          if (radarInst) radarInst.destroy();
+          radarInst = new Chart(document.getElementById(canvasId), {
+            type: 'radar',
+            data: {
+              labels: ['BMI', 'Sleep', 'Exercise', 'Stress', 'Screen Time'],
+              datasets: [{
+                label: 'Risk Profile',
+                data: [
+                  bmiScore,
+                  data.sleep < 6 ? 9 : data.sleep < 7 ? 6 : 2,
+                  data.exercise < 2 ? 9 : data.exercise < 3 ? 5 : 2,
+                  data.stress,
+                  data.screen > 8 ? 9 : data.screen > 6 ? 6 : 3,
+                ],
+                backgroundColor: 'rgba(26,122,94,.1)',
+                borderColor: c1,
+                pointBackgroundColor: c1,
+                pointBorderColor: '#fdfaf5',
+                pointRadius: 4,
+                borderWidth: 2,
+              }]
+            },
+            options: {
+              scales: {
+                r: {
+                  min: 0, max: 10,
+                  ticks: { display: false },
+                  grid: { color: 'rgba(26,22,18,.08)' },
+                  pointLabels: { color: '#8c7e72', font: { family: 'Outfit', size: 11 } },
+                  angleLines: { color: 'rgba(26,22,18,.06)' },
+                }
+              },
+              plugins: { legend: { display: false } },
+            }
+          });
+        }, 150);
+        return;
+      }
+
+      if (type === 'plan') {
+        const { recs } = payload;
+        card.innerHTML = `
+      <div class="crc-section-label">Personalized Prevention Plan</div>
+      ${recs.map(r => `
+        <div class="crc-rec-row">
+          <div class="crc-rec-ico">${r.ico}</div>
+          <div class="crc-rec-body">
+            <strong>${r.title}</strong>
+            <span>${r.desc}</span>
+          </div>
+        </div>`).join('')}`;
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(card);
+        thread.appendChild(wrapper);
+        return;
+      }
+
+      if (type === 'actions') {
+        card.style.background = 'var(--bg2)';
+        card.style.border = 'none';
+        card.innerHTML = `
+      <p style="font-size:.9rem; margin-bottom:14px; font-weight:600">What would you like to do next?</p>
+      <div class="crc-actions">
+        <button class="crc-action-btn" onclick="nav('tracker')">📈 Track Weekly Progress</button>
+        <button class="crc-action-btn outline" onclick="restartChat()">🔄 Reassess</button>
+        <button class="crc-action-btn outline" onclick="window.print()">🖨 Print Report</button>
+      </div>`;
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(card);
+        thread.appendChild(wrapper);
+        return;
+      }
+
+      // fallback
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(card);
+      thread.appendChild(wrapper);
+    }
+
+    /* ══════════════════════════════════
+       RISK ENGINE (unchanged logic)
+    ══════════════════════════════════ */
+    function calcRisk(d) {
+      const factors = [];
+      const bmi = d.weight / ((d.height / 100) ** 2);
+
+      if (bmi > 30) factors.push({ name: 'BMI (Obese)', icon: '⚖️', pts: 2.0 });
+      else if (bmi > 27) factors.push({ name: 'BMI (Overweight)', icon: '⚖️', pts: 1.5 });
+      else if (bmi < 18.5) factors.push({ name: 'BMI (Underweight)', icon: '⚖️', pts: 0.5 });
+
+      if (d.sleep < 6) factors.push({ name: 'Low Sleep', icon: '😴', pts: 1.5 });
+      else if (d.sleep < 7) factors.push({ name: 'Below-avg Sleep', icon: '😴', pts: 0.8 });
+
+      if (d.exercise < 2) factors.push({ name: 'Sedentary Lifestyle', icon: '🏃', pts: 1.5 });
+      else if (d.exercise < 3) factors.push({ name: 'Low Activity', icon: '🏃', pts: 0.8 });
+
+      if (d.stress > 7) factors.push({ name: 'High Stress', icon: '🧠', pts: 1.0 });
+      else if (d.stress > 5) factors.push({ name: 'Moderate Stress', icon: '🧠', pts: 0.5 });
+
+      const fhCount = d.fhCount;
+      if (fhCount > 1) factors.push({ name: 'Multiple Family History', icon: '🧬', pts: 2.0 });
+      else if (fhCount === 1) factors.push({ name: 'Family History', icon: '🧬', pts: 1.5 });
+
+      if (d.screen > 8) factors.push({ name: 'Excessive Screen Time', icon: '📱', pts: 1.0 });
+      else if (d.screen > 6) factors.push({ name: 'High Screen Time', icon: '📱', pts: 0.6 });
+
+      if (d.diet === 'fastfood') factors.push({ name: 'Poor Diet', icon: '🍔', pts: 1.0 });
+      else if (d.diet === 'mixed') factors.push({ name: 'Irregular Diet', icon: '🍔', pts: 0.5 });
+
+      const total = factors.reduce((a, f) => a + f.pts, 0);
+      const score = Math.min(parseFloat((total / 10 * 10).toFixed(1)), 10);
+      return { score, factors, bmi };
+    }
+
+    function getRecs(d, factors, bmi) {
+      const recs = [];
+      if (bmi > 27) recs.push({
+        ico: '🏃', title: 'Daily Cardio — 30 Minutes, 5x/Week',
+        desc: 'Brisk walking, cycling, or swimming. Even a 30-minute walk reduces BMI and cardiac risk significantly over 8 weeks.'
+      });
+      if (d.sleep < 7) recs.push({
+        ico: '😴', title: 'Target 7–8 Hours of Sleep',
+        desc: 'Set a consistent bedtime. Avoid screens for 60 minutes before sleep. Use blue-light filters after 7 PM.'
+      });
+      if (d.exercise < 3) recs.push({
+        ico: '💪', title: 'Build a 3-Day Exercise Habit',
+        desc: 'Start with 3 days per week — two strength sessions + one cardio. Even 20-minute walks count toward your goal.'
+      });
+      if (d.stress > 6) recs.push({
+        ico: '🧘', title: 'Daily Stress Management',
+        desc: 'Practice box breathing (4-4-4-4) for 5 minutes daily. Take a 5-minute break every 90 minutes. Limit news/social media.'
+      });
+      if (d.screen > 6) recs.push({
+        ico: '📱', title: 'Cap Screen Time at 6 Hours',
+        desc: 'Set app timers on your phone. Replace 1 hour of screen time with an outdoor walk. Use night mode after sunset.'
+      });
+      if (['fastfood', 'mixed'].includes(d.diet)) recs.push({
+        ico: '🥗', title: 'Shift to Whole Foods',
+        desc: 'Replace one processed meal daily with vegetables, legumes, or whole grains. Cook at home 4+ days per week.'
+      });
+      if (d.fhCount > 0) recs.push({
+        ico: '🧬', title: 'Annual Preventive Screening',
+        desc: 'Schedule annual fasting blood sugar, blood pressure, and lipid panel checks. Family history elevates your baseline risk significantly.'
+      });
+      if (recs.length === 0) recs.push({
+        ico: '✅', title: 'Great Lifestyle — Keep It Up!',
+        desc: 'Your current habits are in a healthy range. Continue monitoring monthly and maintain your routine. Prevention is ongoing!'
+      });
+      return recs;
+    }
+
+    /* ══════════════════════════════════
+       RENDER RESULTS (unchanged)
+    ══════════════════════════════════ */
+    function renderResults(score, factors, recs, data, bmi) {
+      document.getElementById('resultDate').textContent =
+        new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const circ = 477;
+      const offset = circ - (score / 10) * circ;
+      setTimeout(() => {
+        document.getElementById('dialCircle').style.strokeDashoffset = offset;
+      }, 100);
+      document.getElementById('dialNum').textContent = score.toFixed(1);
+
+      let cat, catCls, title, desc, c1, c2;
+      if (score <= 3) {
+        cat = '🟢 Low Risk'; catCls = 'low';
+        title = 'Your Risk Level is Low'; c1 = '#1a7a5e'; c2 = '#2ea87a';
+        desc = 'Your lifestyle habits are largely healthy. A few optimizations could reduce risk further and protect long-term wellness.';
+      } else if (score <= 6) {
+        cat = '🟡 Moderate Risk'; catCls = 'mod';
+        title = 'Moderate Risk Detected'; c1 = '#d4870a'; c2 = '#f0a732';
+        desc = 'Your lifestyle patterns have some areas of concern. Following the recommendations below can significantly lower your risk within weeks.';
+      } else {
+        cat = '🔴 High Risk'; catCls = 'high';
+        title = 'High Risk — Action Needed'; c1 = '#c0392b'; c2 = '#e74c3c';
+        desc = 'Multiple lifestyle factors are contributing to elevated disease risk. Prioritizing the recommendations below is critical for your long-term health.';
+      }
+
+      document.getElementById('scoreTitle').textContent = title;
+      document.getElementById('scoreDesc').textContent = desc;
+      const pill = document.getElementById('riskPill');
+      pill.textContent = cat;
+      pill.className = 'risk-pill ' + catCls;
+
+      document.getElementById('gStop1').setAttribute('stop-color', c1);
+      document.getElementById('gStop2').setAttribute('stop-color', c2);
+      document.getElementById('dialCircle').style.stroke = `url(#dialGrad)`;
+
+      document.getElementById('userSummary').innerHTML = `
+    <div class="us-item"><div class="us-label">Age</div><div class="us-val">${data.age} yrs</div></div>
+    <div class="us-item"><div class="us-label">BMI</div><div class="us-val">${bmi.toFixed(1)}</div></div>
+    <div class="us-item"><div class="us-label">Sleep</div><div class="us-val">${data.sleep}h</div></div>
+    <div class="us-item"><div class="us-label">Exercise</div><div class="us-val">${data.exercise}d/wk</div></div>`;
+
+      const maxPts = Math.max(...factors.map(f => f.pts), 1);
+      document.getElementById('factorsList').innerHTML = factors.length
+        ? factors.map(f => `
+        <div class="f-row">
+          <div class="f-meta">
+            <span class="f-name">${f.icon} ${f.name}</span>
+            <span class="f-pts">+${f.pts.toFixed(1)}</span>
+          </div>
+          <div class="f-track">
+            <div class="f-fill" style="width:0%" data-w="${(f.pts / maxPts) * 100}%"></div>
+          </div>
+        </div>`).join('')
+        : '<p style="color:var(--muted); font-size:.9rem">No significant risk factors detected. Excellent lifestyle habits!</p>';
+
+      setTimeout(() => {
+        document.querySelectorAll('.f-fill').forEach(el => {
+          el.style.width = el.dataset.w;
+        });
+      }, 200);
+
+      if (radarInst) radarInst.destroy();
+      const bmiScore = Math.min(bmi > 30 ? 9 : bmi > 27 ? 6 : bmi > 25 ? 3 : 1, 10);
+      radarInst = new Chart(document.getElementById('radarCanvas'), {
+        type: 'radar',
+        data: {
+          labels: ['BMI', 'Sleep', 'Exercise', 'Stress', 'Screen Time'],
+          datasets: [{
+            label: 'Risk Profile',
+            data: [
+              bmiScore,
+              data.sleep < 6 ? 9 : data.sleep < 7 ? 6 : 2,
+              data.exercise < 2 ? 9 : data.exercise < 3 ? 5 : 2,
+              data.stress,
+              data.screen > 8 ? 9 : data.screen > 6 ? 6 : 3,
+            ],
+            backgroundColor: 'rgba(26,122,94,.12)',
+            borderColor: c1,
+            pointBackgroundColor: c1,
+            pointBorderColor: '#fdfaf5',
+            pointRadius: 5,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          scales: {
+            r: {
+              min: 0, max: 10,
+              ticks: { display: false },
+              grid: { color: 'rgba(26,22,18,.08)' },
+              pointLabels: { color: '#8c7e72', font: { family: 'Outfit', size: 11 } },
+              angleLines: { color: 'rgba(26,22,18,.06)' },
+            }
+          },
+          plugins: { legend: { display: false } },
+        }
+      });
+
+      document.getElementById('recsList').innerHTML = recs.map(r => `
+    <div class="rec-row">
+      <div class="rec-ico">${r.ico}</div>
+      <div class="rec-body">
+        <strong>${r.title}</strong>
+        <span>${r.desc}</span>
+      </div>
+    </div>`).join('');
+    }
+
+    /* ══════════════════════════════════
+       TRACKER
+    ══════════════════════════════════ */
+    function saveEntry(score, data) {
+      const hist = JSON.parse(localStorage.getItem('vg_history') || '[]');
+      hist.push({
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        ts: Date.now(), score,
+        sleep: data.sleep, exercise: data.exercise,
+        stress: data.stress, screen: data.screen,
+      });
+      localStorage.setItem('vg_history', JSON.stringify(hist));
+    }
+
+    function addWeeklyEntry() {
+      const hist = JSON.parse(localStorage.getItem('vg_history') || '[]');
+      if (!lastData) { alert('Please complete your initial assessment first.'); nav('assess'); return; }
+
+      const updated = {
+        ...lastData,
+        sleep: +document.getElementById('tSleep').value,
+        exercise: +document.getElementById('tExercise').value,
+        stress: +document.getElementById('tStress').value,
+        screen: +document.getElementById('tScreen').value,
+      };
+
+      // Try ML endpoint first; fall back to calcRisk if unavailable
+      function toAgeCat(age) {
+        if (age < 25) return 1; if (age < 30) return 2; if (age < 35) return 3;
+        if (age < 40) return 4; if (age < 45) return 5; if (age < 50) return 6;
+        if (age < 55) return 7; if (age < 60) return 8; if (age < 65) return 9;
+        if (age < 70) return 10; if (age < 75) return 11; if (age < 80) return 12;
+        return 13;
+      }
+      const bmiW = updated.weight / ((updated.height / 100) ** 2);
+      const payload = {
+        HighBP: updated.highBP ?? 0, HighChol: updated.highChol ?? 0,
+        BMI: parseFloat(bmiW.toFixed(1)), Smoker: updated.smoker ?? 0,
+        PhysActivity: updated.exercise >= 3 ? 1 : 0,
+        Fruits: updated.fruits ?? 1, Veggies: updated.veggies ?? 1,
+        HvyAlcoholConsump: updated.hvyAlcohol ?? 0,
+        GenHlth: updated.genHlth ?? 3,
+        MentHlth: Math.round(updated.stress * 3), PhysHlth: 0,
+        DiffWalk: updated.diffWalk ?? 0,
+        Sex: updated.gender === 'male' ? 1 : 0,
+        Age: toAgeCat(updated.age), Education: 4, Income: 5,
+      };
+
+      function finishWeekly(score) {
+        lastData = updated;
+        saveEntry(score, updated);
+        renderTracker();
+
+        const newHist = JSON.parse(localStorage.getItem('vg_history') || '[]');
+        if (newHist.length >= 2) {
+          const prev = newHist[newHist.length - 2].score;
+          const curr = score;
+          const diff = (prev - curr).toFixed(1);
+          const pct = Math.abs(((prev - curr) / prev) * 100).toFixed(0);
+          const banner = document.getElementById('improvementBanner');
+          const txt = document.getElementById('improvementText');
+          banner.style.display = 'flex';
+          if (diff > 0) {
+            txt.textContent = `Your risk reduced by ${diff} points (${pct}% improvement) this week!`;
+            banner.style.background = 'var(--low-bg)';
+            banner.style.color = 'var(--low)';
+          } else if (diff < 0) {
+            txt.textContent = `Risk increased by ${Math.abs(diff)} points. Check the recommendations below.`;
+            banner.style.background = 'var(--high-bg)';
+            banner.style.color = 'var(--high)';
+          } else {
+            txt.textContent = 'No change this week. Keep following your prevention plan.';
+            banner.style.background = 'var(--mod-bg)';
+            banner.style.color = 'var(--warn)';
+          }
+        }
+      }
+
+      fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(r => r.json())
+        .then(res => {
+          // Blend all 5 ML scores equally, then 60/40 with rule-based
+          const mlScores = [
+            res.diabetes ?? res.risk_probability * 10,
+            res.heart    ?? 0,
+            res.bp       ?? 0,
+            res.stroke   ?? 0,
+            res.obesity  ?? 0,
+          ];
+          const mlOverall = mlScores.reduce((a, b) => a + b, 0) / 5;
+          const { score: ruleScore } = calcRisk(updated);
+          const blended = parseFloat(((mlOverall * 0.6) + (ruleScore * 0.4)).toFixed(1));
+          finishWeekly(blended);
+        })
+        .catch(() => {
+          const { score } = calcRisk(updated);
+          finishWeekly(score);
+        });
+    }
+
+    function renderTracker() {
+      const hist = JSON.parse(localStorage.getItem('vg_history') || '[]');
+      const entriesEl = document.getElementById('historyEntries');
+
+      if (hist.length === 0) {
+        entriesEl.innerHTML = `
+      <div class="empty-tracker">
+        <div class="et-icon">📋</div>
+        <p>No entries yet. Complete an assessment first,<br/>then update weekly here.</p>
+        <button class="btn btn-accent" onclick="nav('assess')">Start Assessment →</button>
+      </div>`;
+        if (trendInst) { trendInst.destroy(); trendInst = null; }
+        return;
+      }
+
+      entriesEl.innerHTML = [...hist].reverse().map((h, i, arr) => {
+        const prev = arr[i + 1];
+        let changeHtml = '';
+        if (prev) {
+          const d = (h.score - prev.score).toFixed(1);
+          const pct = Math.abs(((h.score - prev.score) / prev.score) * 100).toFixed(0);
+          if (d < 0) changeHtml = `<span class="he-change better">▼ ${Math.abs(d)} pts (${pct}% ↓)</span>`;
+          else if (d > 0) changeHtml = `<span class="he-change worse">▲ ${d} pts (${pct}% ↑)</span>`;
+          else changeHtml = `<span class="he-change same">No change</span>`;
+        } else {
+          changeHtml = `<span class="he-change same">Baseline</span>`;
+        }
+        const clr = h.score <= 3 ? 'var(--low)' : h.score <= 6 ? 'var(--mod)' : 'var(--high)';
+        return `
+      <div class="history-entry">
+        <span class="he-date">📅 ${h.date}</span>
+        <span class="he-score" style="color:${clr}">${h.score.toFixed(1)}<span style="font-size:.7rem;color:var(--muted)">/10</span></span>
+        ${changeHtml}
+      </div>`;
+      }).join('');
+
+      if (trendInst) trendInst.destroy();
+      trendInst = new Chart(document.getElementById('trendCanvas'), {
+        type: 'line',
+        data: {
+          labels: hist.map(h => h.date),
+          datasets: [{
+            label: 'Risk Score',
+            data: hist.map(h => h.score),
+            borderColor: '#1a7a5e',
+            backgroundColor: 'rgba(26,122,94,.08)',
+            pointBackgroundColor: '#1a7a5e',
+            pointBorderColor: '#fdfaf5',
+            pointRadius: 5,
+            tension: 0.4,
+            fill: true,
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              min: 0, max: 10,
+              grid: { color: 'rgba(26,22,18,.06)' },
+              ticks: { color: '#8c7e72', font: { family: 'Outfit' } }
+            },
+            x: {
+              grid: { color: 'rgba(26,22,18,.06)' },
+              ticks: { color: '#8c7e72', font: { family: 'Outfit', size: 11 } }
+            }
+          },
+          plugins: { legend: { display: false } },
+        }
+      });
+    }
+
+    function clearHistory() {
+      if (confirm('Clear all weekly history?')) {
+        localStorage.removeItem('vg_history');
+        document.getElementById('improvementBanner').style.display = 'none';
+        renderTracker();
+      }
+    }
+
+    // Init tracker sliders
+    syncSlider('tSleep', 'tSleepVal', v => v + ' hrs');
+    syncSlider('tExercise', 'tExVal', v => v + ' days');
+    syncSlider('tStress', 'tStressVal', v => v);
+    syncSlider('tScreen', 'tScreenVal', v => v + ' hrs');
+
+    // Iframe detection: fix position:fixed inside iframe
+    if (window.self !== window.top) {
+      document.body.classList.add('in-iframe');
+    }
+  </script>
+
+</body>
+
+</html>
