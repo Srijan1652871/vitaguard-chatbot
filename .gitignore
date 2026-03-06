@@ -2,5 +2,7 @@
 __pycache__/
 *.pyc
 *.pyo
+skin_model.pth
 diabetes_012_health_indicators_BRFSS2015.csv
 data_preprocess.zip
+convert_to_onnx.py
