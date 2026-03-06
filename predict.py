@@ -1,3 +1,6 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force CPU — no GPU on Render
+
 import torch
 import torchvision
 from torchvision import transforms
