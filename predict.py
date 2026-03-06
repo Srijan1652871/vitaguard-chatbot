@@ -1,7 +1,12 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force CPU — no GPU on Render
+os.environ["CUDA_VISIBLE_DEVICES"] = ""        # force CPU — no GPU on Render
+os.environ["OMP_NUM_THREADS"] = "1"            # limit OpenMP threads
+os.environ["MKL_NUM_THREADS"] = "1"            # limit MKL threads
 
 import torch
+torch.set_num_threads(1)                        # limit PyTorch threads for free tier
+torch.set_num_interop_threads(1)
+
 import torchvision
 from torchvision import transforms
 from PIL import Image
@@ -26,12 +31,16 @@ label_mapping = {
     "vasc":  "Vascular Lesion"
 }
 
-# ── Load model ──
-# skin_model/ is a folder (PyTorch's new directory save format)
+# Load model
 model = torchvision.models.mobilenet_v2(weights=None)
 model.classifier[1] = nn.Linear(model.last_channel, len(class_names))
 model.load_state_dict(torch.load("skin_model.pth", map_location="cpu"))
 model.eval()
+
+# Pre-warm the model with a dummy pass so first real request is faster
+with torch.no_grad():
+    dummy = torch.zeros(1, 3, IMG_SIZE, IMG_SIZE)
+    model(dummy)
 
 transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
@@ -40,10 +49,6 @@ transform = transforms.Compose([
 ])
 
 def predict_from_base64(b64_string):
-    """
-    Accepts a base64 image string (as sent from the browser via fetch).
-    Strips the data URL prefix if present, decodes, and runs inference.
-    """
     # Strip the "data:image/jpeg;base64," prefix if present
     if "," in b64_string:
         b64_string = b64_string.split(",")[1]
